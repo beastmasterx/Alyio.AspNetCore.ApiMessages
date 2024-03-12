@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using System;
 
 namespace Alyio.AspNetCore.ApiMessages;
 
@@ -11,7 +10,9 @@ namespace Alyio.AspNetCore.ApiMessages;
 /// is sent when no other error is applicable, or if the exact error is unknown or
 /// does not have its own error code.
 /// </summary>
+#pragma warning disable CA1710 // Identifiers should have correct suffix
 public sealed class BadRequestMessage : Exception, IApiMessage
+#pragma warning restore CA1710 // Identifiers should have correct suffix
 {
     /// <summary>
     /// Initialize a new instance of <see cref="BadRequestMessage"/> class with default 'ValidationFailed' message.

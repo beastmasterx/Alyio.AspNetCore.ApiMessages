@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.Net.Http.Headers;
-using System.Collections.Generic;
 
 namespace Alyio.AspNetCore.ApiMessages;
 
@@ -95,7 +94,7 @@ public static class ControllerExtensions
 
     private static string TrimAsyncSuffix(string actionName)
     {
-        if (actionName.EndsWith("Async"))
+        if (actionName.EndsWith("Async", StringComparison.Ordinal))
         {
             return actionName.Substring(0, actionName.Length - "Async".Length);
         }

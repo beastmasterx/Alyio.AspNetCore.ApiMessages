@@ -5,10 +5,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
-using System;
 using System.Net;
 using System.Net.Http.Json;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace Alyio.AspNetCore.ApiMessages.Tests

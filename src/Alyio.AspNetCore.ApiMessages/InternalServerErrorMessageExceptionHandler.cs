@@ -1,9 +1,6 @@
 ﻿#if NET8_0
 using Alyio.AspNetCore.ApiMessages;
 using Microsoft.AspNetCore.Http;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Microsoft.AspNetCore.Diagnostics
 {
@@ -15,13 +12,13 @@ namespace Microsoft.AspNetCore.Diagnostics
         /// <summary>
         /// Writes machine-readable format for specifying errors in HTTP API responses based on https://tools.ietf.org/html/rfc7807.
         /// </summary>
-        /// <param name="context"></param>
+        /// <param name="httpContext"></param>
         /// <param name="exception"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public async ValueTask<bool> TryHandleAsync(HttpContext context, Exception exception, CancellationToken cancellationToken)
+        public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
         {
-            await context.WriteExceptionAsProblemDetailsAsync(exception);
+            await httpContext.WriteExceptionAsProblemDetailsAsync(exception);
             return await ValueTask.FromResult(true);
         }
     }

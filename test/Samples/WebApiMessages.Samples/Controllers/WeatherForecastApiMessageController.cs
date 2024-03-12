@@ -1,6 +1,7 @@
 using Alyio.AspNetCore.ApiMessages;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Globalization;
 using WebApiMessages.Samples.Models;
 
 namespace WebApiMessages.Samples.Controllers;
@@ -66,7 +67,7 @@ public class WeatherForecastApiMessageController : ControllerBase
         //     }
         //   ]
         // }
-        return this.CreatedMessageAtAction(nameof(GetWeatherForecastAsync), new { id = weather.Id }, weather.Id.ToString())!;
+        return this.CreatedMessageAtAction(nameof(GetWeatherForecastAsync), new { id = weather.Id }, weather.Id.ToString(CultureInfo.InvariantCulture))!;
     }
 
     [HttpPut("{id}")]

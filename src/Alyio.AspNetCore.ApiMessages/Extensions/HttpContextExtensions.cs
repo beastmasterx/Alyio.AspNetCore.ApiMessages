@@ -2,14 +2,10 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Net.Http.Headers;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Net;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Threading.Tasks;
 
 namespace Alyio.AspNetCore.ApiMessages;
 
@@ -66,15 +62,9 @@ public static class HttpContextExtensions
     /// <exception cref="InvalidOperationException"></exception>
     public static Task WriteProblemDetailsAsync(this HttpContext context, IApiMessage message, bool clearCacheHeaders = true)
     {
-        if (context == null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
+        ArgumentNullException.ThrowIfNull(context);
 
-        if (message == null)
-        {
-            throw new ArgumentNullException(nameof(message));
-        }
+        ArgumentNullException.ThrowIfNull(message);
 
         context.Response.Clear();
         if (clearCacheHeaders)

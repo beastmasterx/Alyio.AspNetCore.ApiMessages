@@ -1,7 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Threading.Tasks;
 
 namespace Alyio.AspNetCore.ApiMessages;
 
@@ -37,7 +35,9 @@ sealed class ApiMessageHandlerMiddleware
                 // We can't do anything if the response has already started, just abort.
                 if (context.Response.HasStarted)
                 {
+#pragma warning disable CA1848 // Use the LoggerMessage delegates
                     _logger.LogWarning("The response has already started, the API message handler will not be executed.");
+#pragma warning restore CA1848 // Use the LoggerMessage delegates
                     throw;
                 }
                 await context.WriteProblemDetailsAsync(message);
