@@ -19,7 +19,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Setup .NET ${{ matrix.dotnet-version }}
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ matrix.dotnet-version }}
       - name: Test
@@ -27,6 +27,6 @@ jobs:
           #version=${{ matrix.dotnet-version }}
           #framework=net${version%.x} # remove .x from the end
           #dotnet test -f ${framework} /p:CollectCoverage=true /p:CoverletOutputFormat=opencover
-          dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=opencover
+          dotnet test -p:CollectCoverage=true -p:CoverletOutputFormat=opencover
       - name: Pack
         run: dotnet pack -c Release src/Alyio.AspNetCore.ApiMessages/
