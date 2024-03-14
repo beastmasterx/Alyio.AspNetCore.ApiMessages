@@ -1,3 +1,4 @@
+// MIT License
 
 using Microsoft.AspNetCore.Mvc.Testing;
 

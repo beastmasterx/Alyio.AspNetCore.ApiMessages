@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿// MIT License
+
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Alyio.AspNetCore.ApiMessages;

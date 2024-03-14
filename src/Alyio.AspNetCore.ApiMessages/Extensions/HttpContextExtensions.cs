@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿// MIT License
+
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Net.Http.Headers;

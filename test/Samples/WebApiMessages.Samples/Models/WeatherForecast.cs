@@ -1,3 +1,5 @@
+// MIT License
+
 using System.ComponentModel.DataAnnotations;
 
 namespace WebApiMessages.Samples.Models;

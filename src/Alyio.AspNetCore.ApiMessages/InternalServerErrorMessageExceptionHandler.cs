@@ -1,4 +1,6 @@
-﻿#if NET8_0
+﻿// MIT License
+
+#if NET8_0
 using Alyio.AspNetCore.ApiMessages;
 using Microsoft.AspNetCore.Http;
 

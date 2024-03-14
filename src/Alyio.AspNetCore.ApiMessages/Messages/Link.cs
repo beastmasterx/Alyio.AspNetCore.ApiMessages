@@ -1,4 +1,6 @@
-﻿using System.Text.Json.Serialization;
+﻿// MIT License
+
+using System.Text.Json.Serialization;
 
 namespace Alyio.AspNetCore.ApiMessages;
 

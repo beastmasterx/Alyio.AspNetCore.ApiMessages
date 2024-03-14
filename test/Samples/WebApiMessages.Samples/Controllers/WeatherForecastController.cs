@@ -1,3 +1,5 @@
+// MIT License
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebApiMessages.Samples.Models;

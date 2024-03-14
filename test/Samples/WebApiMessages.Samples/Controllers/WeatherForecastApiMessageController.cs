@@ -1,3 +1,5 @@
+// MIT License
+
 using Alyio.AspNetCore.ApiMessages;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;

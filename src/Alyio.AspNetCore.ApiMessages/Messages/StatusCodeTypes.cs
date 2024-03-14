@@ -1,4 +1,6 @@
-﻿namespace Alyio.AspNetCore.ApiMessages
+﻿// MIT License
+
+namespace Alyio.AspNetCore.ApiMessages
 {
     /// <summary>
     /// A collection of constants for

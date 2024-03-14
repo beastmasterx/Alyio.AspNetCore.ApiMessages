@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿// MIT License
+
+using Microsoft.AspNetCore.Builder;
 
 namespace Alyio.AspNetCore.ApiMessages;
 

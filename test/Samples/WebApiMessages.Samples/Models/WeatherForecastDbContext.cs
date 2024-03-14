@@ -1,3 +1,5 @@
+// MIT License
+
 namespace WebApiMessages.Samples.Models;
 
 using Microsoft.EntityFrameworkCore;

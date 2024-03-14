@@ -1,4 +1,6 @@
-﻿using System;
+﻿// MIT License
+
+using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Filters;

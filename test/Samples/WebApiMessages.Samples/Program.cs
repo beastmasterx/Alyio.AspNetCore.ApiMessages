@@ -1,3 +1,5 @@
+// MIT License
+
 using Alyio.AspNetCore.ApiMessages;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
