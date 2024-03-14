@@ -12,15 +12,16 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        dotnet-version: [ '6.0.x', '7.0.x', '8.0.x', '9.0.x' ]
     steps:
       - uses: actions/checkout@v4
       - name: Setup .NET ${{ matrix.dotnet-version }}
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: ${{ matrix.dotnet-version }}
+          dotnet-version: |
+            '6.0.x'
+            '7.0.x'
+            '8.0.x'
+            '9.0.x'
       - name: dotnet info 
         run: dotnet --info
       - name: dotnet test
