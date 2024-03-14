@@ -1,8 +1,11 @@
+// MIT License
+
+using System.Globalization;
+using System.Net;
 using Alyio.AspNetCore.ApiMessages;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Net.Http.Headers;
-using System.Net;
 using WebApiMessages.Samples.Models;
 
 namespace WebApiMessages.Samples.Tests;
@@ -69,7 +72,7 @@ public class WeatherForecastApiMessageControllerTests : IClassFixture<WebApplica
 
         var weather2 = await getResponse.Content.ReadFromJsonAsync<WeatherForecast>();
 
-        Assert.Equal(createdMessage.Id, weather2!.Id.ToString());
+        Assert.Equal(createdMessage.Id, weather2!.Id.ToString(CultureInfo.InvariantCulture));
     }
 
     [Fact]
