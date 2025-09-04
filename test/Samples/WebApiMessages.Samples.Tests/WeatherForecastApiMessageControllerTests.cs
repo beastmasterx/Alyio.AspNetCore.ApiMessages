@@ -2,6 +2,7 @@
 
 using System.Globalization;
 using System.Net;
+using System.Net.Http.Json;
 using Alyio.AspNetCore.ApiMessages;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
