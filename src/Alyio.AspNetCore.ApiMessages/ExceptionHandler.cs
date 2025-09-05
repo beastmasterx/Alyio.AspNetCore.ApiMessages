@@ -12,7 +12,7 @@ namespace Alyio.AspNetCore.ApiMessages;
 public static class ExceptionHandler
 {
     /// <summary>
-    /// Handle a HTTP context exception and write a <see cref="InternalServerErrorMessage"/> into the <see cref="HttpContext.Response"/>.
+    /// Handle a HTTP context exception and write a <see cref="InternalServerErrorException"/> into the <see cref="HttpContext.Response"/>.
     /// </summary>
     /// <param name="context">The <see cref="HttpContext"/></param>
     /// <returns></returns>

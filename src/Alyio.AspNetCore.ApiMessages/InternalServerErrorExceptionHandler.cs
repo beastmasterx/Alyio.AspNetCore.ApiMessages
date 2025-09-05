@@ -1,15 +1,16 @@
 ﻿// MIT License
 
-#if NET8_0
+#if NET8_0_OR_GREATER
+
 using Alyio.AspNetCore.ApiMessages;
 using Microsoft.AspNetCore.Http;
 
 namespace Microsoft.AspNetCore.Diagnostics
 {
     /// <summary>
-    /// Handle a HTTP context exception and write a <see cref="InternalServerErrorMessage"/> into the <see cref="HttpContext.Response"/>.
+    /// Handle a HTTP context exception and write a <see cref="InternalServerErrorException"/> into the <see cref="HttpContext.Response"/>.
     /// </summary>
-    public class InternalServerErrorMessageExceptionHandler : IExceptionHandler
+    public class InternalServerErrorExceptionHandler : IExceptionHandler
     {
         /// <summary>
         /// Writes machine-readable format for specifying errors in HTTP API responses based on https://tools.ietf.org/html/rfc7807.
@@ -26,4 +27,5 @@ namespace Microsoft.AspNetCore.Diagnostics
     }
 
 }
+
 #endif

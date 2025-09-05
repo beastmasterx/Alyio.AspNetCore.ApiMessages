@@ -56,7 +56,7 @@ builder.Services
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 #if NET8_0
-builder.Services.AddExceptionHandler<InternalServerErrorMessageExceptionHandler>();
+builder.Services.AddExceptionHandler<InternalServerErrorExceptionHandler>();
 #endif
 
 var app = builder.Build();

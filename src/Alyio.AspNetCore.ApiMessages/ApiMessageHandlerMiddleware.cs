@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Alyio.AspNetCore.ApiMessages;
 
-sealed class ApiMessageHandlerMiddleware
+internal sealed class ApiMessageHandlerMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ILogger<ApiMessageHandlerMiddleware> _logger;
@@ -37,9 +37,7 @@ sealed class ApiMessageHandlerMiddleware
                 // We can't do anything if the response has already started, just abort.
                 if (context.Response.HasStarted)
                 {
-#pragma warning disable CA1848 // Use the LoggerMessage delegates
-                    _logger.LogWarning("The response has already started, the API message handler will not be executed.");
-#pragma warning restore CA1848 // Use the LoggerMessage delegates
+                    Log.ResponseAlreadyStarted(_logger);
                     throw;
                 }
                 await context.WriteProblemDetailsAsync(message);
@@ -48,4 +46,13 @@ sealed class ApiMessageHandlerMiddleware
             throw; // Re-throw the original if we couldn't handle it
         }
     }
+}
+
+internal static partial class Log
+{
+    [LoggerMessage(
+        EventId = 1,
+        Level = LogLevel.Warning,
+        Message = "The response has already started, the API message handler will not be executed.")]
+    internal static partial void ResponseAlreadyStarted(ILogger logger);
 }

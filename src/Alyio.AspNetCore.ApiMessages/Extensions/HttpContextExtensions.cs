@@ -1,13 +1,13 @@
 ﻿// MIT License
 
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Net.Http.Headers;
 using System.Diagnostics;
 using System.Net;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Net.Http.Headers;
 
 namespace Alyio.AspNetCore.ApiMessages;
 
@@ -16,7 +16,7 @@ namespace Alyio.AspNetCore.ApiMessages;
 /// </summary>
 public static class HttpContextExtensions
 {
-    private readonly static JsonSerializerOptions jsonSerializerOptions = new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull };
+    private static readonly JsonSerializerOptions s_jsonSerializerOptions = new() { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull };
 
     /// <summary>
     /// Writes machine-readable format for specifying errors in HTTP API responses based on https://tools.ietf.org/html/rfc7807.
@@ -28,7 +28,7 @@ public static class HttpContextExtensions
     /// <exception cref="InvalidOperationException"></exception>
     public static Task WriteExceptionAsProblemDetailsAsync(this HttpContext context, Exception exception, bool clearCacheHeaders = true)
     {
-        var message = new InternalServerErrorMessage(exception.Message);
+        var message = new InternalServerErrorException(exception.Message);
         message.ProblemDetails.Extensions["exceptionType"] = exception.GetType().FullName;
 
         var errors = new List<string>();
@@ -83,6 +83,7 @@ public static class HttpContextExtensions
             context.Response.Body,
             message.ProblemDetails,
             message.ProblemDetails.GetType(),
+            options: s_jsonSerializerOptions,
             cancellationToken: context.RequestAborted);
     }
 
