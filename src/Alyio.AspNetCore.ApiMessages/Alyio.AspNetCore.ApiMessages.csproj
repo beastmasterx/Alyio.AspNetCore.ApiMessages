@@ -1,14 +1,15 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
     <TargetFrameworks>net6.0;net8.0;net9.0;net10.0</TargetFrameworks>
     <VersionPrefix>8.0.0</VersionPrefix>
     <Copyright>Copyright (c) 2023 Jon X</Copyright>
-    <Description>Provides a mechanism to process unhandled exception occured during a HTTP context and write custom API result message.</Description>
+    <Description>Standardize ASP.NET Core API error handling into clean and consistent RFC 7807 ProblemDetails responses using a lightweight exception-based approach.</Description>
     <Authors>Jon X</Authors>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageId>Alyio.AspNetCore.ApiMessages</PackageId>
-    <PackageTags>AspNetCore;Api;Messages;Problem Details;rfc7807</PackageTags>
+    <PackageTags>aspnetcore,webapi,error-handling,exception-handling,problem-details,rfc7807,api,rest,exceptions,middleware</PackageTags>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageProjectUrl>https://github.com/ousiax/Alyio.AspNetCore.ApiMessages</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -17,6 +18,7 @@
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/ousiax/Alyio.AspNetCore.ApiMessages</RepositoryUrl>
   </PropertyGroup>
+
   <ItemGroup>
     <None Include="..\..\README.md">
       <Pack>True</Pack>

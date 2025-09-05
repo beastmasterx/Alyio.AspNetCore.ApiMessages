@@ -20,7 +20,7 @@ public class WeatherForecastApiMessageController : ControllerBase
     [HttpGet]
     public async Task<IEnumerable<WeatherForecast>> GetAllWeatherForecastAsync()
     {
-        _ = _context.WeatherForecasts ?? throw new NotFoundMessage();
+        _ = _context.WeatherForecasts ?? throw new NotFoundException();
 
         return await _context.WeatherForecasts.ToListAsync();
     }
@@ -29,11 +29,11 @@ public class WeatherForecastApiMessageController : ControllerBase
     //[ActionName(nameof(GetWeatherForecastAsync))]
     public async Task<WeatherForecast> GetWeatherForecastAsync([FromRoute] int id)
     {
-        _ = _context.WeatherForecasts ?? throw new NotFoundMessage();
+        _ = _context.WeatherForecasts ?? throw new NotFoundException();
 
         var weather = await _context.WeatherForecasts.FindAsync(id);
 
-        _ = weather ?? throw new NotFoundMessage();
+        _ = weather ?? throw new NotFoundException();
 
         return weather;
     }
@@ -44,10 +44,10 @@ public class WeatherForecastApiMessageController : ControllerBase
         // NOTE: The [ApiController] attribute makes model validation errors automatically trigger an HTTP 400 response. 
         if (!ModelState.IsValid)
         {
-            throw new BadRequestMessage(ModelState);
+            throw new BadRequestException(ModelState);
         }
 
-        _ = _context.WeatherForecasts ?? throw new InternalServerErrorMessage("Entity set 'WeatherForecastDbContext.WeatherForecasts'  is null.");
+        _ = _context.WeatherForecasts ?? throw new InternalServerErrorException("Entity set 'WeatherForecastDbContext.WeatherForecasts'  is null.");
 
         await _context.WeatherForecasts.AddAsync(weather);
         await _context.SaveChangesAsync();
@@ -93,7 +93,7 @@ public class WeatherForecastApiMessageController : ControllerBase
             //   "status": 400,
             //   "traceId": "00-dcb9bbe9d2d19a1c13b1990131d82e39-8f17233259d979ec-00"
             // }
-            throw new BadRequestMessage();
+            throw new BadRequestException();
         }
 
         // NOTE: The [ApiController] attribute makes model validation errors automatically trigger an HTTP 400 response. 
@@ -120,10 +120,10 @@ public class WeatherForecastApiMessageController : ControllerBase
             //     ]
             //   }
             // }
-            throw new BadRequestMessage(ModelState);
+            throw new BadRequestException(ModelState);
         }
 
-        _ = _context.WeatherForecasts ?? throw new NotFoundMessage();
+        _ = _context.WeatherForecasts ?? throw new NotFoundException();
 
         _context.WeatherForecasts.Update(weather);
 
@@ -149,18 +149,18 @@ public class WeatherForecastApiMessageController : ControllerBase
             //   "status": 404,
             //   "traceId": "00-76dc706d91e46ebbb42cfcc34b9f45ab-420dc463c9979a83-00"
             // }
-            throw new NotFoundMessage();
+            throw new NotFoundException();
         }
     }
 
     [HttpDelete("{id}")]
     public async Task DeleteWeatherForecastAsync([FromRoute] int id)
     {
-        _ = _context.WeatherForecasts ?? throw new NotFoundMessage();
+        _ = _context.WeatherForecasts ?? throw new NotFoundException();
 
         var weather = await _context.WeatherForecasts.FindAsync(id);
 
-        _ = weather ?? throw new NotFoundMessage();
+        _ = weather ?? throw new NotFoundException();
 
         _context.WeatherForecasts.Remove(weather);
 
@@ -187,7 +187,7 @@ public class WeatherForecastApiMessageController : ControllerBase
         //   "detail": "Oops, something wrong.",
         //   "traceId": "00-15af5b9926042f4768e5e3146ffc0e79-d5358830ba9105c1-00"
         // }
-        throw new UnauthorizedMessage("Oops, something wrong.");
+        throw new UnauthorizedException("Oops, something wrong.");
     }
 
     [HttpGet("forbidden")]
@@ -210,7 +210,7 @@ public class WeatherForecastApiMessageController : ControllerBase
         //   "detail": "Oops, something wrong.",
         //   "traceId": "00-0ac73e5f90fbd604cf5a984afea1c61c-1e4f7eb6bcfb025f-00"
         // }
-        throw new ForbiddenMessage("Oops, something wrong.");
+        throw new ForbiddenException("Oops, something wrong.");
     }
 
     [HttpGet("oops")]

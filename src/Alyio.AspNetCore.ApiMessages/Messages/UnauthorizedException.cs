@@ -6,20 +6,18 @@ using Microsoft.AspNetCore.Mvc;
 namespace Alyio.AspNetCore.ApiMessages;
 
 /// <summary>
-/// Equivalent to HTTP status 401. <see cref="UnauthorizedMessage"/> indicates
+/// Equivalent to HTTP status 401. <see cref="UnauthorizedException"/> indicates
 /// that the requested resource requires authentication. The WWW-Authenticate header
 /// contains the details of how to perform the authentication.
 /// </summary>
-#pragma warning disable CA1710 // Identifiers should have correct suffix
-public sealed class UnauthorizedMessage : Exception, IApiMessage
-#pragma warning restore CA1710 // Identifiers should have correct suffix
+public sealed class UnauthorizedException : Exception, IApiMessage
 {
     /// <summary>
-    /// Initialize a new instance of <see cref="UnauthorizedMessage"/> class.
+    /// Initialize a new instance of <see cref="UnauthorizedException"/> class.
     /// </summary>
-    public UnauthorizedMessage()
+    public UnauthorizedException()
     {
-        this.ProblemDetails = new ProblemDetails
+        ProblemDetails = new ProblemDetails
         {
             Title = XMessage.Unauthorized,
             Status = StatusCodes.Status401Unauthorized,
@@ -28,11 +26,11 @@ public sealed class UnauthorizedMessage : Exception, IApiMessage
     }
 
     /// <summary>
-    /// Initialize a new instance of <see cref="UnauthorizedMessage"/> class.
+    /// Initialize a new instance of <see cref="UnauthorizedException"/> class.
     /// </summary>
-    public UnauthorizedMessage(string detail) : this()
+    public UnauthorizedException(string detail) : this()
     {
-        this.ProblemDetails.Detail = detail;
+        ProblemDetails.Detail = detail;
     }
 
     /// <inheritdoc />

@@ -22,7 +22,7 @@ namespace Alyio.AspNetCore.ApiMessages.Tests
                 .ConfigureServices((ctx, services) =>
                 {
 #if NET8_0
-                    services.AddExceptionHandler<InternalServerErrorMessageExceptionHandler>();
+                    services.AddExceptionHandler<InternalServerErrorExceptionHandler>();
 #endif
                 })
                 .Configure(app =>
@@ -50,35 +50,35 @@ namespace Alyio.AspNetCore.ApiMessages.Tests
                    {
                        x.Run(h =>
                        {
-                           throw new BadRequestMessage(XMessage.ValidationFailed);
+                           throw new BadRequestException(XMessage.ValidationFailed);
                        });
                    });
                    app.Map("/401", x =>
                    {
                        x.Run(h =>
                        {
-                           throw new UnauthorizedMessage();
+                           throw new UnauthorizedException();
                        });
                    });
                    app.Map("/403", x =>
                    {
                        x.Run(h =>
                        {
-                           throw new ForbiddenMessage();
+                           throw new ForbiddenException();
                        });
                    });
                    app.Map("/404", x =>
                    {
                        x.Run(h =>
                        {
-                           throw new NotFoundMessage();
+                           throw new NotFoundException();
                        });
                    });
                    app.Map("/500", x =>
                    {
                        x.Run(h =>
                        {
-                           throw new InternalServerErrorMessage();
+                           throw new InternalServerErrorException();
                        });
                    });
                    app.Run(ctx =>

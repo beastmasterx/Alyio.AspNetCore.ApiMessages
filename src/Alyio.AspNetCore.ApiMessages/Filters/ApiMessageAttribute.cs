@@ -1,7 +1,5 @@
 ﻿// MIT License
 
-using System;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Filters;
 
@@ -11,7 +9,7 @@ namespace Alyio.AspNetCore.ApiMessages.Filters;
 /// Represents an exception filter to handler <see cref="IApiMessage"/> message and writes <see cref="IApiMessage.ProblemDetails"/> to the current http response.
 /// </summary>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = true, Inherited = true)]
-public class ApiMessageFilterAttribute : ExceptionFilterAttribute
+public class ApiMessageAttribute : ExceptionFilterAttribute
 {
     /// <summary>
     /// Writes the API message into <see cref="HttpContext"/>.
