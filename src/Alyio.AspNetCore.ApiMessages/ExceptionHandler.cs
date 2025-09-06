@@ -1,4 +1,6 @@
-﻿// MIT License
+// MIT License
+
+#if !NET8_0_OR_GREATER
 
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
@@ -22,3 +24,5 @@ public static class ExceptionHandler
         return context.WriteExceptionAsProblemDetailsAsync(error);
     }
 }
+
+#endif

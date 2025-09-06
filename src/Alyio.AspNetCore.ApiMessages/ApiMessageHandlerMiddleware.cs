@@ -1,4 +1,6 @@
-﻿// MIT License
+// MIT License
+
+#if !NET8_0_OR_GREATER
 
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -47,3 +49,5 @@ internal sealed class ApiMessageHandlerMiddleware
         }
     }
 }
+
+#endif

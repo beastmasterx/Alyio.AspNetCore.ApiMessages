@@ -1,4 +1,6 @@
-﻿// MIT License
+// MIT License
+
+#if !NET8_0_OR_GREATER
 
 using System.Diagnostics;
 using System.Net;
@@ -97,3 +99,5 @@ public static class HttpContextExtensions
         return Task.FromResult(0);
     }
 }
+
+#endif

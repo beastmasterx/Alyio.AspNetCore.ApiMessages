@@ -25,9 +25,13 @@
       <PackagePath>\</PackagePath>
     </None>
   </ItemGroup>
-  
+
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
-  </ItemGroup> 
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Alyio.AspNetCore.ApiMessages.Tests" />
+  </ItemGroup>
 
 </Project>

@@ -1,4 +1,6 @@
-﻿// MIT License
+// MIT License
+
+#if !NET8_0_OR_GREATER
 
 using Microsoft.AspNetCore.Builder;
 
@@ -19,3 +21,5 @@ public static class ApplicationBuilderExtensions
         return app.UseMiddleware<ApiMessageHandlerMiddleware>();
     }
 }
+
+#endif

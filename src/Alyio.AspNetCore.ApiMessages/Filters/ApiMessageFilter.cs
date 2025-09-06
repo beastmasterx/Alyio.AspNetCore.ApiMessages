@@ -2,7 +2,9 @@
 
 #if NET8_0_OR_GREATER
 
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace Alyio.AspNetCore.ApiMessages.Filters;
@@ -31,7 +33,15 @@ internal sealed class ApiMessageFilter : IEndpointFilter
                     Log.ResponseAlreadyStarted(_logger);
                     throw; // Re-throw if response has started
                 }
-                await context.HttpContext.WriteProblemDetailsAsync(message);
+
+                var problemDetailsService = context.HttpContext.RequestServices.GetRequiredService<IProblemDetailsService>();
+                context.HttpContext.Response.StatusCode = message.ProblemDetails.Status ?? StatusCodes.Status500InternalServerError;
+                await problemDetailsService.WriteAsync(new ProblemDetailsContext
+                {
+                    HttpContext = context.HttpContext,
+                    ProblemDetails = message.ProblemDetails
+                });
+
                 return Results.Empty;
             }
             throw; // Re-throw if not IApiMessage

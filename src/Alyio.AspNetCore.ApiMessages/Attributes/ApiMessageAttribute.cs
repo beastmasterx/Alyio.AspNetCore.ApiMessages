@@ -2,6 +2,7 @@
 
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Alyio.AspNetCore.ApiMessages;
 
@@ -16,14 +17,23 @@ public sealed class ApiMessageAttribute : ExceptionFilterAttribute
     /// </summary>
     /// <param name="context"><see cref="ExceptionContext"/>.</param>
     /// <returns></returns>
-    public override Task OnExceptionAsync(ExceptionContext context)
+    public override async Task OnExceptionAsync(ExceptionContext context)
     {
         if (!context.HttpContext.Response.HasStarted && context.Exception is IApiMessage message)
         {
-            context.ExceptionHandled = true;
-            return context.HttpContext.WriteProblemDetailsAsync(message);
-        }
+#if NET8_0_OR_GREATER
+            var problemDetailsService = context.HttpContext.RequestServices.GetRequiredService<IProblemDetailsService>();
+            context.HttpContext.Response.StatusCode = message.ProblemDetails.Status ?? StatusCodes.Status500InternalServerError;
+            await problemDetailsService.WriteAsync(new ProblemDetailsContext
+            {
+                HttpContext = context.HttpContext,
+                ProblemDetails = message.ProblemDetails
+            });
 
-        return Task.CompletedTask;
+#else
+            await context.HttpContext.WriteProblemDetailsAsync(message);
+#endif
+            context.ExceptionHandled = true;
+        }
     }
 }
