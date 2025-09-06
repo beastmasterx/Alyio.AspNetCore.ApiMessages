@@ -2,7 +2,6 @@
 
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
-using System.Threading.Tasks;
 
 namespace Alyio.AspNetCore.ApiMessages;
 

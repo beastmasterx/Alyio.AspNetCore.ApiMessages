@@ -3,7 +3,6 @@
 using System.Net;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -37,6 +36,7 @@ public class ApiMessageHandlerMiddlewareTests
         Assert.Equal(expectedStatusCode, response.StatusCode);
         var details = await response.Content.ReadFromJsonAsync<ProblemDetails>();
         Assert.NotNull(details);
+        Assert.Equal((int)expectedStatusCode, details.Status);
         Assert.Equal(expectedType, details.Type);
     }
 
@@ -57,6 +57,7 @@ public class ApiMessageHandlerMiddlewareTests
         Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
         var details = await response.Content.ReadFromJsonAsync<ProblemDetails>();
         Assert.NotNull(details);
+        Assert.Equal((int)HttpStatusCode.InternalServerError, details.Status);
         Assert.Equal(StatusCodeTypes.Status500InternalServerError, details.Type);
     }
 
@@ -112,18 +113,16 @@ public class ApiMessageHandlerMiddlewareTests
         return new WebHostBuilder()
             .ConfigureServices((_, services) =>
             {
-#if NET8_0_OR_GREATER
-                services.AddExceptionHandler<InternalServerErrorExceptionHandler>();
-#endif
+                services.AddApiMessages();
             })
             .Configure(app =>
             {
 #if NET8_0_OR_GREATER
-                app.UseExceptionHandler("/Error");
+                app.UseExceptionHandler();
 #else
                 app.UseExceptionHandler(new ExceptionHandlerOptions { ExceptionHandler = ExceptionHandler.WriteUnhandledMessageAsync });
-#endif
                 app.UseApiMessage();
+#endif
                 configureApp(app);
             });
     }

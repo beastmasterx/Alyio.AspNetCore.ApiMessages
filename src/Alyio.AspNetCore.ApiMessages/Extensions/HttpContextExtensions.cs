@@ -16,7 +16,7 @@ namespace Alyio.AspNetCore.ApiMessages;
 /// </summary>
 public static class HttpContextExtensions
 {
-    private static readonly JsonSerializerOptions s_jsonSerializerOptions = new() { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull };
+    private static readonly JsonSerializerOptions s_jsonSerializeOptions = new() { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull };
 
     /// <summary>
     /// Writes machine-readable format for specifying errors in HTTP API responses based on https://tools.ietf.org/html/rfc7807.
@@ -83,7 +83,7 @@ public static class HttpContextExtensions
             context.Response.Body,
             message.ProblemDetails,
             message.ProblemDetails.GetType(),
-            options: s_jsonSerializerOptions,
+            options: s_jsonSerializeOptions,
             cancellationToken: context.RequestAborted);
     }
 
