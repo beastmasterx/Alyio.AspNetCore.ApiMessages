@@ -14,7 +14,7 @@ public static class ApplicationBuilderExtensions
     /// </summary>
     /// <param name="app">The <see cref="IApplicationBuilder"/>.</param>
     /// <returns></returns>
-    public static IApplicationBuilder UseApiMessageHandler(this IApplicationBuilder app)
+    public static IApplicationBuilder UseApiMessage(this IApplicationBuilder app)
     {
         return app.UseMiddleware<ApiMessageHandlerMiddleware>();
     }

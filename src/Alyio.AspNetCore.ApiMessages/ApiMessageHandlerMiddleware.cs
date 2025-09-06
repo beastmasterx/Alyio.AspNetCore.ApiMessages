@@ -22,9 +22,9 @@ internal sealed class ApiMessageHandlerMiddleware
     /// <summary>
     /// Processes unhandled exception and write <see cref="Microsoft.AspNetCore.Mvc.ProblemDetails"/> to the current <see cref="HttpContext.Response"/>.
     /// </summary>
-    /// <param name="context"></param>
-    /// <returns></returns>
-    public async Task Invoke(HttpContext context)
+    /// <param name="context">The <see cref="HttpContext"/>.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    public async Task InvokeAsync(HttpContext context)
     {
         try
         {

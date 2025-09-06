@@ -72,7 +72,7 @@ app.UseExceptionHandler("/Error");
 #else
 app.UseExceptionHandler(new ExceptionHandlerOptions { ExceptionHandler = ExceptionHandler.WriteUnhandledMessageAsync });
 #endif
-app.UseApiMessageHandler();
+app.UseApiMessage();
 //}
 
 // Configure the HTTP request pipeline.

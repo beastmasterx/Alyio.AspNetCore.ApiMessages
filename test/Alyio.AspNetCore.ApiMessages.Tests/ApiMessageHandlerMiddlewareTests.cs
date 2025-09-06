@@ -123,7 +123,7 @@ public class ApiMessageHandlerMiddlewareTests
 #else
                 app.UseExceptionHandler(new ExceptionHandlerOptions { ExceptionHandler = ExceptionHandler.WriteUnhandledMessageAsync });
 #endif
-                app.UseApiMessageHandler();
+                app.UseApiMessage();
                 configureApp(app);
             });
     }
