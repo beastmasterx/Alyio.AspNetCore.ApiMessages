@@ -1,425 +1,549 @@
 # Alyio.AspNetCore.ApiMessages
 
 ![Build Status](https://github.com/ousiax/Alyio.AspNetCore.ApiMessages/actions/workflows/ci.yml/badge.svg?branch=main)
+[![NuGet Version](https://img.shields.io/nuget/v/Alyio.AspNetCore.ApiMessages.svg)](https://www.nuget.org/packages/Alyio.AspNetCore.ApiMessages/)
 
-The **Alyio.AspNetCore.ApiMessages** provides the mechanism to process unhandled exception occured during a HTTP context and writes machine-readable format for specifying errors in HTTP API responses based on [rfc7807](https://tools.ietf.org/html/rfc7807).
+A lightweight ASP.NET Core library that seamlessly integrates with ASP.NET Core's error handling mechanisms to standardize API error handling and messages into Problem Details for HTTP APIs responses.
 
-You can throw any exception during a HTTP context if you want, and if the `IApiMessage` has been implemented by the exception, `Alyio.AspNetCore.ApiMessages` will produce a consistent response corresponding to it.
+## Table of Contents
 
-```console
+- [Why Alyio.AspNetCore.ApiMessages?](#why-alyioaspnetcoreapimessages)
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [Usage](#usage)
+  - [Configuration](#configuration)
+    - [For .NET 8.0+](#for-net-80)
+    - [For the Legacy .NET 6.0](#for-the-legacy-net-60)
+  - [Defining and Throwing API Messages](#defining-and-throwing-api-messages)
+  - [Using Action Filters (for Controller-Based APIs)](#using-action-filters-for-controller-based-apis)
+  - [Using Endpoint Filters (for .NET 8.0+ Minimal APIs)](#using-endpoint-filters-for-net-80-minimal-apis)
+  - [Built-in API Message Examples](#built-in-api-message-examples)
+  - [Handling 201 Created Responses with CreatedMessage](#handling-201-created-responses-with-createdmessage)
+- [Problem Details for HTTP APIs](#problem-details-for-http-apis)
+- [Contributing](#contributing)
+- [License](#license)
+- [Contact](#contact)
+
+## Why Alyio.AspNetCore.ApiMessages?
+
+Developing robust and user-friendly APIs often involves handling responses consistently, whether they indicate an error or a successful operation. In ASP.NET Core, achieving this standardization across various scenarios (exceptions, validation errors, successful resource creation) can be repetitive and lead to inconsistent API contracts.
+
+By utilizing `Alyio.AspNetCore.ApiMessages`, the development of reliable, maintainable, and developer-friendly APIs is facilitated with reduced effort.
+
+* **Standardized Error Responses**: Automatically transforms exceptions into RFC 9457 (formerly RFC 7807) Problem Details responses, ensuring consistent API error formats.
+
+* **Standardized Success Responses**: Provides mechanisms for consistent HTTP 201 Created responses, including HATEOAS links.
+
+* **Seamless ASP.NET Core Integration**: Leverages ASP.NET Core's built-in `ProblemDetails` and `IProblemDetailsService`, along with exception handling (`IExceptionHandler`, `ExceptionHandlerMiddleware`) and filtering (`IEndpointFilter`, `ExceptionFilterAttribute`) mechanisms.
+
+* **Custom Exception Definition**: Enables defining custom, domain-specific API messages by implementing the `IApiMessage` interface for clear error representation.
+
+* **Middleware-Based Handling**: Provides comprehensive middleware-based exception handling and Problem Details generation for both legacy (.NET 6.0 using `ApiMessageHandlerMiddleware`) and modern (.NET 8.0+ leveraging `ExceptionHandlerMiddleware`) ASP.NET Core applications.
+
+* **Attribute-Based Handling**: Apply `ApiMessageAttribute` directly to controllers/action methods or register it globally as an action filter for targeted exception handling.
+
+* **Endpoint Filter Integration**: Apply API message handling directly to individual minimal API endpoints or to groups of endpoints (for .NET 8.0+) using the `AddApiMessage` *endpoint filter* extension.
+
+* **Dual-Targeting**: Supports the legacy .NET 6.0, and .NET 8.0+ (including .NET 9.0 and .NET 10.0) with optimized configurations for each.
+
+## Installation
+
+Install the NuGet package:
+
+```sh
 dotnet add package Alyio.AspNetCore.ApiMessages
 ```
 
-To use `Alyio.AspNetCore.ApiMessage`, just call `app.UseApiMessageHandler` in `Startup.Configure` as below.
+## Quick Start
 
-```cs
-#if NET8_0
-builder.Services.AddExceptionHandler<InternalServerErrorMessageExceptionHandler>();
-#endif
+This guide demonstrates configuring global exception handling for a .NET 8.0+ application to automatically convert exceptions into standardized `ProblemDetails` responses.
+
+**1. Configure Services and Middleware in `Program.cs`**
+
+First, register the required services by calling `builder.Services.AddApiMessages()`. Then, enable the global exception handler by adding `app.UseExceptionHandler()` to the request processing pipeline.
+
+```csharp
+// Program.cs
+var builder = WebApplication.CreateBuilder(args);
+
+// Add services for controllers and API message handling.
+builder.Services.AddControllers();
+builder.Services.AddApiMessages();
 
 var app = builder.Build();
 
-#if NET8_0
-app.UseExceptionHandler("/Error");
-#else
-app.UseExceptionHandler(new ExceptionHandlerOptions { ExceptionHandler = ExceptionHandler.WriteUnhandledMessageAsync });
-#endif
-app.UseApiMessageHandler();
+// Enable the global exception handler. This must be placed early
+// in the pipeline to catch exceptions from subsequent middleware.
+app.UseExceptionHandler();
 
-// . . .
+app.UseHttpsRedirection();
+app.UseAuthorization();
+app.MapControllers();
 
 app.Run();
 ```
 
-- To handle unknown exception during a HTTP context, configure the `ExceptionHandlerOptions.ExceptionHandler` with `Alyio.AspNetCore.ApiMessages.ExceptionHandler.WriteUnhandledMessageAsync`.
-- For .NET 8.0, you can also use the [`IServiceCollection.AddExceptionHandler<T>`](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/error-handling?view=aspnetcore-8.0#iexceptionhandler) to handle errors in ASP.NET Core.
+**2. Throw an API Message Exception**
 
+With the global handler configured, any thrown exception that implements `IApiMessage` will be automatically caught and formatted. No special attributes are required on the controller.
 
-NOTE: You can also use the exception filter using `MvcOptions.Filters`, instead of the middleware as below:
+```csharp
+// Controllers/ProductsController.cs
+using Alyio.AspNetCore.ApiMessages;
+using Microsoft.AspNetCore.Mvc;
 
-```cs
-builder.Services
-    .AddControllers(options =>
-    {
-        options.Filters.Add(typeof(ApiMessageFilterAttribute));
-        options.Conventions.Add(new RouteTokenTransformerConvention(new SlugifyParameterTransformer()));
-    }).ConfigureApiBehaviorOptions(o =>
-    {
-        // Suppress the default model state validator
-        o.SuppressModelStateInvalidFilter = true;
-    });
-```
-
-
-## 400 Bad Request
-
-> [**Automatic HTTP 400 responses**](https://learn.microsoft.com/en-us/aspnet/core/web-api/?view=aspnetcore-7.0#automatic-http-400-responses)
-> 
-> The `[ApiController]` attribute makes model validation errors automatically trigger an HTTP 400  response.> Consequently, the following code is unnecessary in an action method:
-> 
-> ```cs
-> if (!ModelState.IsValid)
-> {
->     return BadRequest(ModelState);
-> }
-> ```
-> 
-> ASP.NET Core MVC uses the [`ModelStateInvalidFilter`](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.infrastructure.modelstateinvalidfilter) action filter to do the preceding check.
->
-> . . .
->
-> To disable the automatic 400 behavior, set the `SuppressModelStateInvalidFilter` property to `true`. Add the following code:
-> 
-> ```cs
-> builder.Services.AddControllers()
->     .ConfigureApiBehaviorOptions(options =>
->     {
->         // options.SuppressConsumesConstraintForFormFileParameters = true;
->         // options.SuppressInferBindingSourcesForParameters = true;
->         options.SuppressModelStateInvalidFilter = true;
->         // options.SuppressMapClientErrors = true;
->         // options.ClientErrorMapping[StatusCodes.Status404NotFound].Link = "https://httpstatuses.com/404";
->     });
-> ```
-
-Here is an example about how to generate 400 Bad Request messages:
-
-```cs
-    [HttpPut("{id}")]
-    public async Task PutWeatherForecastAsync([FromRoute] int id, [FromBody] WeatherForecast weather)
-    {
-        if (id != weather.Id)
-        {
-            // http://localhost:5000/weather-forecast-api-message/10> put -c "{}"
-            // HTTP / 1.1 400 Bad Request
-            // Cache - Control: no - cache
-            // Content - Type: application / problem + json; charset = utf - 8
-            // Date: Tue, 24 Oct 2023 08:31:51 GMT
-            // Expires: -1
-            // Pragma: no - cache
-            // Server: Kestrel
-            // Transfer - Encoding: chunked
-            // 
-            // {
-            //   "type": "https://tools.ietf.org/html/rfc7231#section-6.5.1",
-            //   "title": "ValidationFailed",
-            //   "status": 400,
-            //   "traceId": "00-dcb9bbe9d2d19a1c13b1990131d82e39-8f17233259d979ec-00"
-            // }
-            throw new BadRequestMessage();
-        }
-
-        // NOTE: The [ApiController] attribute makes model validation errors automatically trigger an HTTP 400 response. 
-        if (!ModelState.IsValid)
-        {
-            // http://localhost:5000/weather-forecast-api-message/10> put -c "{"id": 10}"
-            // HTTP/1.1 400 Bad Request
-            // Cache-Control: no-cache
-            // Content-Type: application/problem+json; charset=utf-8
-            // Date: Tue, 24 Oct 2023 08:33:21 GMT
-            // Expires: -1
-            // Pragma: no-cache
-            // Server: Kestrel
-            // Transfer-Encoding: chunked
-            // 
-            // {
-            //   "type": "https://tools.ietf.org/html/rfc7231#section-6.5.1",
-            //   "title": "ValidationFailed",
-            //   "status": 400,
-            //   "traceId": "00-8c2871328b938115780f42e1c383a41f-3deddb83dfb02b25-00",
-            //   "errors": {
-            //     "Summary": [
-            //       "The Summary field is required."
-            //     ]
-            //   }
-            // }
-            throw new BadRequestMessage(ModelState);
-        }
-
-        _ = _context.WeatherForecasts ?? throw new NotFoundMessage();
-
-        _context.WeatherForecasts.Update(weather);
-
-        try
-        {
-            await _context.SaveChangesAsync();
-        }
-        catch (DbUpdateConcurrencyException) when (!WeatherForecastExists(id))
-        {
-            // http://localhost:5000/weather-forecast-api-message/11> put -c "{"id": 11, "summary": "coool"}"
-            // HTTP/1.1 404 Not Found
-            // Cache-Control: no-cache
-            // Content-Type: application/problem+json; charset=utf-8
-            // Date: Tue, 24 Oct 2023 08:36:04 GMT
-            // Expires: -1
-            // Pragma: no-cache
-            // Server: Kestrel
-            // Transfer-Encoding: chunked
-            // 
-            // {
-            //   "type": "https://tools.ietf.org/html/rfc7231#section-6.5.4",
-            //   "title": "Not Found",
-            //   "status": 404,
-            //   "traceId": "00-76dc706d91e46ebbb42cfcc34b9f45ab-420dc463c9979a83-00"
-            // }
-            throw new NotFoundMessage();
-        }
-    }
-```
-
-## 401 Unauthorized
-
-```cs
-    [Route("unauthorized")]
-    public void UnauthorizedMessage()
-    {
-        // http://localhost:5000/weather-forecast-api-message> post unauthorized -c "{}"
-        // HTTP/1.1 401 Unauthorized
-        // Cache-Control: no-cache
-        // Content-Type: application/problem+json; charset=utf-8
-        // Date: Tue, 24 Oct 2023 08:46:53 GMT
-        // Expires: -1
-        // Pragma: no-cache
-        // Server: Kestrel
-        // Transfer-Encoding: chunked
-        // 
-        // {
-        //   "type": "https://datatracker.ietf.org/doc/html/rfc7235#section-3.1",
-        //   "title": "Unauthorized",
-        //   "status": 401,
-        //   "detail": "Oops, something wrong.",
-        //   "traceId": "00-15af5b9926042f4768e5e3146ffc0e79-d5358830ba9105c1-00"
-        // }
-        throw new UnauthorizedMessage("Oops, something wrong.");
-    }
-```
-
-
-## 403 Forbidden
-
-```cs
-    [Route("forbidden")]
-    public void ForbiddenMessage()
-    {
-        // http://localhost:5000/weather-forecast-api-message> get forbidden
-        // HTTP/1.1 403 Forbidden
-        // Cache-Control: no-cache
-        // Content-Type: application/problem+json; charset=utf-8
-        // Date: Tue, 24 Oct 2023 08:46:33 GMT
-        // Expires: -1
-        // Pragma: no-cache
-        // Server: Kestrel
-        // Transfer-Encoding: chunked
-        // 
-        // {
-        //   "type": "https://datatracker.ietf.org/doc/html/rfc7231#section-6.5.3",
-        //   "title": "Forbidden",
-        //   "status": 403,
-        //   "detail": "Oops, something wrong.",
-        //   "traceId": "00-0ac73e5f90fbd604cf5a984afea1c61c-1e4f7eb6bcfb025f-00"
-        // }
-        throw new ForbiddenMessage("Oops, something wrong.");
-    }
-```
-
-## 201 Created
-
-For `201 Created` message, 
-
-```cs
-    [HttpPost]
-    public async Task<CreatedMessage> PostWeatherForecastAsync([FromBody] WeatherForecast weather)
-    {
-        // NOTE: The [ApiController] attribute makes model validation errors automatically trigger an HTTP 400 response. 
-        if (!ModelState.IsValid)
-        {
-            throw new BadRequestMessage(ModelState);
-        }
-
-        _ = _context.WeatherForecasts ?? throw new InternalServerErrorMessage("Entity set 'WeatherForecastDbContext.WeatherForecasts'  is null.");
-
-        await _context.WeatherForecasts.AddAsync(weather);
-        await _context.SaveChangesAsync();
-
-        // http://localhost:5000/weather-forecast-api-message> post -c "{"summary": "cooooooooooool"}"
-        // HTTP/1.1 201 Created
-        // Content-Type: application/json; charset=utf-8
-        // Date: Tue, 24 Oct 2023 08:38:45 GMT
-        // Location: /weather-forecast-api-message/11
-        // Server: Kestrel
-        // Transfer-Encoding: chunked
-        // 
-        // {
-        //   "id": "11",
-        //   "links": [
-        //     {
-        //       "href": "/weather-forecast-api-message/11",
-        //       "rel": "self"
-        //     }
-        //   ]
-        // }
-        return this.CreatedMessageAtAction(nameof(GetWeatherForecastAsync), new { id = weather.Id }, weather.Id.ToString())!;
-    }
-```
-
-## 500 Internal Server Error
-
-You can throw any exception during a HTTP context at anytime and anywhere. The `ExceptionHandler.WriteUnhandledMessageAsync` will intercept the exception and write an a 500 Internal Server Error message.
-
-```cs
-    [HttpGet("oops")]
-    public void Oops()
-    {
-        // http://localhost:5000/weather-forecast-api-message> get oops
-        // HTTP/1.1 500 Internal Server Error
-        // Cache-Control: no-store, no-cache
-        // Content-Type: application/problem+json; charset=utf-8
-        // Date: Tue, 24 Oct 2023 08:45:05 GMT
-        // Expires: -1
-        // Pragma: no-cache
-        // Server: Kestrel
-        // Transfer-Encoding: chunked
-        // 
-        // {
-        //   "type": "https://datatracker.ietf.org/doc/html/rfc7231#section-6.6.1",
-        //   "title": "Internal Server Error",
-        //   "status": 500,
-        //   "detail": "System.InvalidOperationException: Oops, something wrong.
-        //    at WebApiMessages.Samples.Controllers.WeatherForecastApiMessageController.Oops() . . .",
-        //   "exceptionType": "System.InvalidOperationException",
-        //   "traceId": "00-9e1f69c7a4935df87f24b569518a66d3-463ec76137670a25-00"
-        // }
-        throw new InvalidOperationException("Oops, something wrong.");
-    }
-```
-
-## Samples
-
-You can also run the sample at `test/Samples/WebApiMessages.Samples/`:
-
-```console
-$ dotnet run
-Building...
-. . .
-info: Microsoft.EntityFrameworkCore.Update[30100]
-      Saved 10 entities to in-memory store.
-info: Microsoft.Hosting.Lifetime[14]
-      Now listening on: http://localhost:5000
-. . .
-```
-
-And open another terminal, run `httprepl`:
-
-> To install the [HttpRepl](https://github.com/dotnet/HttpRepl), run the following command:
->
-> `dotnet tool install -g Microsoft.dotnet-httprepl`
-
-```console
-$ httprepl http://localhost:5000
-(Disconnected)> connect http://localhost:5000
-Using a base address of http://localhost:5000/
-Using OpenAPI description at http://localhost:5000/swagger/v1/swagger.json
-For detailed tool info, see https://aka.ms/http-repl-doc
-
-http://localhost:5000/> ls
-.                              []
-weather-forecast               [GET|POST]
-weather-forecast-api-message   [GET|POST]
-
-http://localhost:5000/> cd weather-forecast-api-message
-/weather-forecast-api-message    [GET|POST]
-
-http://localhost:5000/weather-forecast-api-message> get 11
-HTTP/1.1 404 Not Found
-Cache-Control: no-cache
-Content-Type: application/problem+json; charset=utf-8
-Date: Tue, 24 Oct 2023 09:10:05 GMT
-Expires: -1
-Pragma: no-cache
-Server: Kestrel
-Transfer-Encoding: chunked
-
+[ApiController]
+[Route("api/[controller]")]
+public class ProductsController : ControllerBase
 {
-  "type": "https://tools.ietf.org/html/rfc7231#section-6.5.4",
+    [HttpGet("{id}")]
+    public IActionResult GetProduct(int id)
+    {
+        if (id <= 0)
+        {
+            // This exception will be handled by the global exception handler.
+            throw new NotFoundException($"Product with ID '{id}' was not found.");
+        }
+        return Ok(new { ProductId = id, Name = "Sample Product" });
+    }
+}
+```
+
+**3. Observe the Standardized Error Response**
+
+A `GET` request to `/api/products/0` will trigger the `NotFoundException`, and the middleware will produce the following `404 Not Found` response.
+
+**Resulting HTTP Response:**
+
+```json
+{
+  "type": "https://tools.ietf.org/html/rfc9110#section-15.5.5",
   "title": "Not Found",
   "status": 404,
-  "traceId": "00-b3e64c172a13c1f90edca65413707114-33402b26d1fe8050-00"
+  "detail": "Product with ID '0' was not found.",
+  "instance": "/api/products/0",
+  "traceId": "00-..."
+}
+```
+
+This configuration ensures that all `IApiMessage` exceptions are handled consistently across the application. For further details on defining custom exceptions, using attribute-based filters, or configuring for legacy runtimes, refer to the **Usage** section.
+
+## Usage
+
+* **Prioritize .NET 8.0+**: If applicable, target .NET 8.0+ to leverage the latest ASP.NET Core features like `IExceptionHandler` and `IEndpointFilter`, which offer more streamlined and performant error handling.
+
+* **Global Exception Handling**: Always configure a global exception handler to ensure all unhandled exceptions across the application result in consistent Problem Details responses.
+
+    * For .NET 8.0+, use `app.UseExceptionHandler()` in conjunction with `builder.Services.AddApiMessages()`.
+
+    * For .NET 6.0, use `app.UseExceptionHandler(ExceptionHandler.WriteUnhandledMessageAsync)` and `app.UseApiMessage()`.
+
+* **Define Custom API Messages**: For domain-specific errors that require a standardized Problem Details response, create custom exceptions that implement the `IApiMessage` interface to define specific `type`, `title`, and `detail` for business logic errors.
+
+* **Targeted Exception Handling**:
+
+    * Use `[ApiMessage]` attribute on controllers or individual action methods for handling `IApiMessage` exceptions thrown within the methods.
+
+    * For Minimal APIs or endpoint routing in .NET 8.0+, apply `.AddApiMessage()` to specific endpoints.
+
+* **Security**: Information exposed in Problem Details responses should be reviewed. Avoid leaking sensitive exception details (e.g., stack traces) in production environments. The library's default behavior for generic exceptions (when handled by `ExceptionHandler.WriteUnhandledMessageAsync` in .NET 6.0) provides a basic message, but review what information is appropriate for the production environment.
+
+### Configuration
+
+The library provides different configuration patterns based on the target .NET framework.
+
+#### For .NET 8.0+
+
+The primary approach for configuring API message handling involves combining `services.AddApiMessages()` and `app.UseExceptionHandler()` to enable comprehensive API message handling.
+
+In `Program.cs`:
+
+```csharp
+var builder = WebApplication.CreateBuilder(args);
+
+// Add services to the container.
+builder.Services.AddControllers();
+builder.Services.AddApiMessages(); // Adds ProblemDetails, ApiMessageFilter, and ApiMessagesExceptionHandler
+
+var app = builder.Build();
+
+// Configure the HTTP request pipeline.
+app.UseExceptionHandler(); // Uses ApiMessagesExceptionHandler for global exception handling
+
+app.UseHttpsRedirection();
+app.UseAuthorization();
+app.MapControllers();
+
+app.Run();
+```
+
+#### For the Legacy .NET 6.0
+
+The primary approach for configuring API message handling in legacy .NET 6.0 applications involves utilizing middleware and the traditional exception handler.
+
+In `Program.cs`:
+
+```csharp
+var builder = WebApplication.CreateBuilder(args);
+
+// Add services to the container.
+builder.Services.AddControllers();
+
+var app = builder.Build();
+
+// Configure the HTTP request pipeline.
+app.UseExceptionHandler(ExceptionHandler.WriteUnhandledMessageAsync); // Handles unhandled exceptions
+app.UseApiMessage(); // Catches IApiMessage exceptions
+
+app.UseHttpsRedirection();
+app.UseAuthorization();
+app.MapControllers();
+
+app.Run();
+```
+
+### Defining and Throwing API Messages
+
+The library provides several built-in exceptions for common HTTP error scenarios, including `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, and `UnauthorizedException`. For custom API messages, implement the `IApiMessage` interface.
+
+Here's how to define and throw a custom API message:
+
+```csharp
+// 1. Define a custom API message
+public class ProductNotFoundException : Exception, IApiMessage
+{
+    public ProblemDetails ProblemDetails { get; }
+
+    public ProductNotFoundException(int productId)
+    {
+        ProblemDetails = new ProblemDetails
+        {
+            Title = "Product Not Found",
+            Status = StatusCodes.Status404NotFound,
+            Detail = $"Product with ID '{productId}' was not found.",
+            Type = "https://example.com/problems/product-not-found"
+        };
+    }
 }
 
-
-http://localhost:5000/weather-forecast-api-message> post -c "{}"
-HTTP/1.1 400 Bad Request
-Cache-Control: no-cache
-Content-Type: application/problem+json; charset=utf-8
-Date: Tue, 24 Oct 2023 09:10:24 GMT
-Expires: -1
-Pragma: no-cache
-Server: Kestrel
-Transfer-Encoding: chunked
-
+// 2. Throw it in a controller action
+[ApiController]
+[Route("api/[controller]")]
+public class ProductsController : ControllerBase
 {
-  "type": "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+    [HttpGet("{id}")]
+    public IActionResult Get(int id)
+    {
+        // Simulate product not found
+        if (id == 0)
+        {
+            throw new ProductNotFoundException(id);
+        }
+        return Ok($"Product {id}");
+    }
+}
+
+// 3. Example HTTP Response (for GET /api/products/0):
+
+// HTTP/1.1 404 Not Found
+// 
+// Content-Type: application/problem+json; charset=utf-8
+// 
+// {
+//   "type": "https://example.com/problems/product-not-found",
+//   "title": "Product Not Found",
+//   "status": 404,
+//   "detail": "Product with ID '0' was not found.",
+//   "instance": "/api/products/0",
+//   "traceId": "00-..."
+// }
+```
+
+### Using Action Filters (for Controller-Based APIs)
+
+While middleware-based handling is the common approach for global exception management, `[ApiMessage]` attribute offers a more granular way to handle `IApiMessage` exceptions. It can be applied to controllers or individual action methods to automatically handle exceptions thrown within the methods, or registered globally as an action filter.
+
+```csharp
+[ApiController]
+[Route("api/[controller]")]
+[ApiMessage] // Apply to the whole controller
+public class MyController : ControllerBase
+{
+    [HttpGet("{id}")]
+    public IActionResult Get(int id)
+    {
+        if (id <= 0)
+        {
+            throw new BadRequestException("Invalid ID provided.");
+        }
+        return Ok();
+    }
+}
+```
+
+```json
+{
+  "type": "https://tools.ietf.org/html/rfc9110#section-15.5.1",
+  "title": "Bad Request",
+  "status": 400,
+  "detail": "Invalid ID provided.",
+  "instance": "/api/mycontroller/0",
+  "traceId": "00-..."
+}
+```
+
+```cs
+[HttpPost]
+[ApiMessage] // Apply to a specific action
+public IActionResult Create([FromBody] MyModel model)
+{
+    if (!ModelState.IsValid)
+    {
+        throw new BadRequestException(ModelState);
+    }
+    // ...
+    return CreatedAtAction(nameof(Get), new { id = 1 }, null);
+}
+```
+
+```json
+{
+  "type": "https://tools.ietf.org/html/rfc9110#section-15.5.1",
   "title": "ValidationFailed",
   "status": 400,
-  "traceId": "00-a3a20de07e19661eaa279e12af433abb-14632dd52e784606-00",
+  "detail": "One or more validation errors occurred.",
+  "instance": "/api/mycontroller",
+  "traceId": "00-...",
   "errors": {
-    "Summary": [
-      "The Summary field is required."
+    "PropertyName": [
+      "Error message for PropertyName."
     ]
   }
 }
+```
 
+```cs
+// Registered globally as an action filter
+builder.Services.AddControllers(options => options.Filters.Add(typeof(ApiMessageAttribute)));
+```
 
-http://localhost:5000/weather-forecast-api-message> post -c "{"summary": "coooool"}"
+### Using Endpoint Filters (for .NET 8.0+ Minimal APIs)
+
+Apply API message handling directly to individual minimal API endpoints or to groups of endpoints (for .NET 8.0+) using the `AddApiMessage` *endpoint filter* extension.
+
+```csharp
+app.MapGet("/items/{id}", (int id) =>
+{
+    if (id <= 0)
+    {
+        throw new BadRequestException("Invalid ID provided.");
+    }
+    return Results.Ok($"Item {id}");
+}).AddApiMessage(); // Apply the endpoint filter
+```
+
+### Built-in API Message Examples
+
+The library provides several built-in exceptions that implement `IApiMessage` for common HTTP error scenarios. Here are examples of their usage and the Problem Details responses they generate.
+
+#### ForbiddenException (HTTP 403)
+
+```csharp
+[ApiController]
+[Route("api/examples")]
+public class ForbiddenExampleController : ControllerBase
+{
+    [HttpGet("forbidden")]
+    public IActionResult GetForbidden()
+    {
+        // Simulate a forbidden access scenario
+        throw new ForbiddenException("Access to this resource is forbidden.");
+    }
+}
+```
+
+```json
+{
+  "type": "https://tools.ietf.org/html/rfc9110#section-15.5.4",
+  "title": "Forbidden",
+  "status": 403,
+  "detail": "Access to this resource is forbidden.",
+  "instance": "/api/examples/forbidden",
+  "traceId": "00-..."
+}
+```
+
+#### InternalServerErrorException (HTTP 500)
+
+```csharp
+[ApiController]
+[Route("api/examples")]
+public class InternalServerErrorExampleController : ControllerBase
+{
+    [HttpGet("internal-server-error")]
+    public IActionResult GetInternalServerError()
+    {
+        // Simulate an unexpected server error
+        throw new InternalServerErrorException("An unexpected error occurred on the server.");
+    }
+}
+```
+
+```json
+{
+  "type": "https://tools.ietf.org/html/rfc9110#section-15.6.1",
+  "title": "Internal Server Error",
+  "status": 500,
+  "detail": "An unexpected error occurred on the server.",
+  "instance": "/api/examples/internal-server-error",
+  "traceId": "00-..."
+}
+```
+
+#### NotFoundException (HTTP 404)
+
+```csharp
+[ApiController]
+[Route("api/examples")]
+public class NotFoundExampleController : ControllerBase
+{
+    [HttpGet("not-found")]
+    public IActionResult GetNotFound()
+    {
+        // Simulate a resource not found scenario
+        throw new NotFoundException("The requested resource was not found.");
+    }
+}
+```
+
+```json
+{
+  "type": "https://tools.ietf.org/html/rfc9110#section-15.5.5",
+  "title": "Not Found",
+  "status": 404,
+  "detail": "The requested resource was not found.",
+  "instance": "/api/examples/not-found",
+  "traceId": "00-..."
+}
+```
+
+#### UnauthorizedException (HTTP 401)
+
+```csharp
+[ApiController]
+[Route("api/examples")]
+public class UnauthorizedExampleController : ControllerBase
+{
+    [HttpGet("unauthorized")]
+    public IActionResult GetUnauthorized()
+    {
+        // Simulate an unauthorized access scenario
+        throw new UnauthorizedException("Authentication is required to access this resource.");
+    }
+}
+```
+
+```json
+{
+  "type": "https://tools.ietf.org/html/rfc9110#section-15.5.2",
+  "title": "Unauthorized",
+  "status": 401,
+  "detail": "Authentication is required to access this resource.",
+  "instance": "/api/examples/unauthorized",
+  "traceId": "00-..."
+}
+```
+
+### Handling 201 Created Responses with `CreatedMessage`
+
+In RESTful API design, an HTTP 201 Created status code indicates that a request has been fulfilled and has resulted in one or more new resources being created. The `Location` header in the response typically points to the URI of the primary resource created.
+
+The library provides the `CreatedMessage` class and associated extension methods to standardize and simplify the generation of 201 Created responses. This ensures consistency, proper HATEOAS (Hypermedia as the Engine of Application State) links, and ease of consumption by API clients.
+
+#### The `CreatedMessage` Class
+
+The `CreatedMessage` class is a data structure designed for use as the body of a 201 Created response. It includes:
+
+*   `Id`: A string identifier for the newly created resource.
+*   `Links`: A collection of HATEOAS `Link` objects, typically including a `self` link pointing to the URI of the created resource.
+
+#### Using Extension Methods for Convenience
+
+While manual construction of a `CreatedMessage` is possible, the library offers convenient extension methods on `ControllerBase` to streamline the process. These methods automatically handle setting the HTTP 201 status code, populating the `Location` header, and constructing the `CreatedMessage` object with appropriate links.
+
+*   `CreatedMessageAtAction(string actionName, object routeValues, string id)`: Generates the `Location` header and `self` link based on an action method.
+*   `CreatedMessageAtRoute(string routeName, object routeValues, string id)`: Generates the `Location` header and `self` link based on a named route.
+
+A comprehensive example demonstrating the use of `CreatedMessageAtAction` is provided below:
+
+```csharp
+[ApiController]
+[Route("api/examples")]
+public class ResourceController : ControllerBase
+{
+    [HttpPost("resources")]
+    public IActionResult CreateResource()
+    {
+        // Simulate resource creation logic
+        var newResourceId = Guid.NewGuid().ToString();
+
+        // The CreatedMessageAtAction extension method is used to build the
+        // response body, including a 'self' link, conforming to the CreatedMessage structure.
+        var createdMessage = this.CreatedMessageAtAction(
+            actionName: nameof(GetResourceById),
+            routeValues: new { id = newResourceId },
+            id: newResourceId);
+
+        // The standard CreatedAtAction method creates the HTTP 201 response,
+        // sets the 'Location' header, and includes the createdMessage object as the response body.
+        return CreatedAtAction(nameof(GetResourceById), new { id = newResourceId }, createdMessage);
+    }
+
+    [HttpGet("resources/{id}", Name = "GetResourceById")]
+    public IActionResult GetResourceById(string id)
+    {
+        // Logic to retrieve the resource by ID
+        // For demonstration purposes, a simple message is returned.
+        return Ok($"Successfully retrieved resource with ID: {id}");
+    }
+}
+```
+
+#### Example HTTP 201 Response
+
+When the `CreateResource` endpoint is called, the response will appear similar to the following:
+
+```http
 HTTP/1.1 201 Created
 Content-Type: application/json; charset=utf-8
-Date: Tue, 24 Oct 2023 09:10:37 GMT
-Location: /weather-forecast-api-message/11
-Server: Kestrel
-Transfer-Encoding: chunked
+Location: /api/examples/resources/a1b2c3d4-e5f6-7890-1234-567890abcdef
 
 {
-  "id": "11",
+  "id": "a1b2c3d4-e5f6-7890-1234-567890abcdef",
   "links": [
     {
-      "href": "/weather-forecast-api-message/11",
-      "rel": "self"
+      "rel": "self",
+      "href": "/api/examples/resources/a1b2c3d4-e5f6-7890-1234-567890abcdef",
+      "method": "GET"
     }
   ]
 }
-
-
-http://localhost:5000/weather-forecast-api-message> get 11
-HTTP/1.1 200 OK
-Content-Type: application/json; charset=utf-8
-Date: Tue, 24 Oct 2023 09:10:51 GMT
-Server: Kestrel
-Transfer-Encoding: chunked
-
-{
-  "id": 11,
-  "date": null,
-  "temperatureC": 0,
-  "temperatureF": 32,
-  "summary": "coooool"
-}
-
-
-http://localhost:5000/weather-forecast-api-message> delete 12
-HTTP/1.1 404 Not Found
-Cache-Control: no-cache
-Content-Type: application/problem+json; charset=utf-8
-Date: Tue, 24 Oct 2023 09:11:03 GMT
-Expires: -1
-Pragma: no-cache
-Server: Kestrel
-Transfer-Encoding: chunked
-
-{
-  "type": "https://tools.ietf.org/html/rfc7231#section-6.5.4",
-  "title": "Not Found",
-  "status": 404,
-  "traceId": "00-4bee59139386ee3ed6c4d9eecce23e34-5c0e3bf4433e921e-00"
-}
-
 ```
+
+*Note: The `Location` header is automatically set by the `CreatedMessageAtAction` extension method. Its value matches the `href` in the `self` link within the response body, providing a consistent and discoverable API experience.*
+
+## Problem Details for HTTP APIs
+
+This library adheres to the [Problem Details for HTTP APIs](https://datatracker.ietf.org/doc/html/rfc9457) specification (RFC 9457, which obsoletes RFC 7807). This standard provides a machine-readable format for HTTP API responses to convey details of a problem. It defines a JSON (or XML) structure with fields like `type`, `title`, `status`, `detail`, and `instance`, allowing clients to understand and handle API errors consistently.
+
+## Contributing
+
+Contributions are welcome! Please feel free to open issues or submit pull requests.
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+## Contact
+
+For questions or feedback, please open an issue on the [GitHub repository](https://github.com/ousiax/Alyio.AspNetCore.ApiMessages).
