@@ -16,7 +16,7 @@ namespace Alyio.AspNetCore.ApiMessages;
 /// <summary>
 /// Extension methods for the <see cref="HttpContext"/>.
 /// </summary>
-public static class HttpContextExtensions
+internal static class HttpContextExtensions
 {
     private static readonly JsonSerializerOptions s_jsonSerializeOptions = new() { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull };
 
