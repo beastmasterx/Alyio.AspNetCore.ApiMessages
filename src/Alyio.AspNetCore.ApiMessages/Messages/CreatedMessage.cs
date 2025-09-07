@@ -1,17 +1,16 @@
 ﻿// MIT License
 
-using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
 namespace Alyio.AspNetCore.ApiMessages;
 
 /// <summary>
-/// Represents a api message that used to produce a Created (201) response.
+/// Represents an API message used to produce a Created (201) response.
 /// </summary>
 public sealed class CreatedMessage
 {
     /// <summary>
-    /// Gets or sets a <see cref="string"/> value that identities the unique ID of a resource.
+    /// Gets or sets a <see cref="string"/> value that identifies the unique ID of a resource.
     /// </summary>
     [JsonPropertyName("id")]
     public string? Id { get; set; }

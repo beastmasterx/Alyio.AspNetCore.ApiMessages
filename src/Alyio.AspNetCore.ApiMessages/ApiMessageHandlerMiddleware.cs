@@ -22,7 +22,8 @@ internal sealed class ApiMessageHandlerMiddleware
     }
 
     /// <summary>
-    /// Processes unhandled exception and write <see cref="Microsoft.AspNetCore.Mvc.ProblemDetails"/> to the current <see cref="HttpContext.Response"/>.
+    /// Processes the HTTP request. This middleware catches <see cref="IApiMessage"/> exceptions,
+    /// converts them into Problem Details responses, and writes them to the current <see cref="HttpContext.Response"/>.
     /// </summary>
     /// <param name="context">The <see cref="HttpContext"/>.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>

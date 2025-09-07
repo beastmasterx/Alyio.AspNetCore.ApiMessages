@@ -12,10 +12,10 @@ namespace Alyio.AspNetCore.ApiMessages;
 public static class ApplicationBuilderExtensions
 {
     /// <summary>
-    /// Adds ApiMessages to the <see cref="IApplicationBuilder"/> request execution pipeline to catch an <see cref="IApiMessage"/> exception and write the <see cref="IApiMessage.ProblemDetails"/> into <see cref="Microsoft.AspNetCore.Http.HttpContext.Response"/>.
+    /// Adds API message handling middleware to the <see cref="IApplicationBuilder"/>'s request pipeline, catching <see cref="IApiMessage"/> exceptions and writing Problem Details to the HTTP response.
     /// </summary>
     /// <param name="app">The <see cref="IApplicationBuilder"/>.</param>
-    /// <returns></returns>
+    /// <returns>The <see cref="IApplicationBuilder"/> so that additional calls can be chained.</returns>
     public static IApplicationBuilder UseApiMessage(this IApplicationBuilder app)
     {
         return app.UseMiddleware<ApiMessageHandlerMiddleware>();

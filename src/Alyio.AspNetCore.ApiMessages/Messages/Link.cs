@@ -16,7 +16,7 @@ public sealed class Link
     public string? Href { get; set; }
 
     /// <summary>
-    /// Gets or sets a <see cref="string"/> value that identifies a relationship for a resource. This attribute is itself an object and has “rel” “href” attributes.
+    /// Gets or sets a <see cref="string"/> value that identifies the relationship of the resource.
     /// </summary>
     [JsonPropertyName("rel")]
     public string? Rel { get; set; }

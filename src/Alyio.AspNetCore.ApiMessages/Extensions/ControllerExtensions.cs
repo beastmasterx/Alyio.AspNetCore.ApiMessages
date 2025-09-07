@@ -12,12 +12,12 @@ namespace Alyio.AspNetCore.ApiMessages;
 public static class ControllerExtensions
 {
     /// <summary>
-    /// Create a created message that produces a Created (201) response.
+    /// Creates a created message that produces a Created (201) response.
     /// </summary>
-    /// <param name="controller">the <see cref="ControllerBase"/>.</param>
+    /// <param name="controller">The <see cref="ControllerBase"/>.</param>
     /// <param name="actionName">The name of the action to use for generating the URL.</param>
-    /// <param name="routeValues">The content value to format in the entity body.</param>
-    /// <param name="id">A <see cref="string"/> value to identity the entity.</param>
+    /// <param name="routeValues">The route values to use for generating the URL.</param>
+    /// <param name="id">A <see cref="string"/> value to identify the created entity.</param>
     /// <returns>The <see cref="Alyio.AspNetCore.ApiMessages.CreatedMessage"/>.</returns>
     public static CreatedMessage CreatedMessageAtAction(this ControllerBase controller, string actionName, object routeValues, string id)
     {
@@ -26,12 +26,12 @@ public static class ControllerExtensions
     }
 
     /// <summary>
-    /// Create a created message that produces a Created (201) response.
+    /// Creates a created message that produces a Created (201) response.
     /// </summary>
-    /// <param name="controller">the <see cref="ControllerBase"/>.</param>
+    /// <param name="controller">The <see cref="ControllerBase"/>.</param>
     /// <param name="routeName">The name of the route to use for generating the URL.</param>
-    /// <param name="routeValues">The content value to format in the entity body.</param>
-    /// <param name="id">A <see cref="string"/> value to identity the entity.</param>
+    /// <param name="routeValues">The route values to use for generating the URL.</param>
+    /// <param name="id">A <see cref="string"/> value to identify the created entity.</param>
     /// <returns>The <see cref="Alyio.AspNetCore.ApiMessages.CreatedMessage"/>.</returns>
     public static CreatedMessage CreatedMessageAtRoute(this ControllerBase controller, string routeName, object routeValues, string id)
     {
@@ -40,11 +40,11 @@ public static class ControllerExtensions
     }
 
     /// <summary>
-    /// Create a created message that produces a Created (201) response.
+    /// Creates a created message that produces a Created (201) response.
     /// </summary>
-    /// <param name="controller">the <see cref="ControllerBase"/>.</param>
-    /// <param name="uri">The URL used to get the entity.</param>
-    /// <param name="id">A <see cref="string"/> value to identity the entity.</param>
+    /// <param name="controller">The <see cref="ControllerBase"/>.</param>
+    /// <param name="uri">The URL used to retrieve the created entity.</param>
+    /// <param name="id">A <see cref="string"/> value to identify the created entity.</param>
     /// <returns>The <see cref="Alyio.AspNetCore.ApiMessages.CreatedMessage"/>.</returns>
     public static CreatedMessage CreatedMessage(this ControllerBase controller, string? uri, string id)
     {
@@ -54,7 +54,7 @@ public static class ControllerExtensions
         {
             Id = id,
             Links = new List<Link> {
-                    new Link {
+                    new() {
                         Href = uri,
                         Rel = "self"
                     }

@@ -15,7 +15,7 @@ namespace Alyio.AspNetCore.ApiMessages;
 public sealed class BadRequestException : Exception, IApiMessage
 {
     /// <summary>
-    /// Initialize a new instance of <see cref="BadRequestException"/> class with default 'ValidationFailed' message.
+    /// Initializes a new instance of the <see cref="BadRequestException"/> class with a default 'ValidationFailed' message.
     /// </summary>
     public BadRequestException()
     {
@@ -28,31 +28,37 @@ public sealed class BadRequestException : Exception, IApiMessage
     }
 
     /// <summary>
-    /// Initialize a new instance of <see cref="BadRequestException"/> class.
+    /// Initializes a new instance of the <see cref="BadRequestException"/> class with a specified detail message.
     /// </summary>
+    /// <param name="detail">A human-readable explanation specific to this occurrence of the problem.</param>
     public BadRequestException(string detail) : this()
     {
         ProblemDetails.Detail = detail;
     }
 
     /// <summary>
-    /// Initialize a new instance of <see cref="BadRequestException"/> class.
+    /// Initializes a new instance of the <see cref="BadRequestException"/> class with a specified detail message and a collection of errors.
     /// </summary>
+    /// <param name="detail">A human-readable explanation specific to this occurrence of the problem.</param>
+    /// <param name="errors">A collection of error messages.</param>
     public BadRequestException(string detail, params string[] errors) : this(detail)
     {
         ProblemDetails.Extensions["errors"] = errors;
     }
 
     /// <summary>
-    /// Initialize a new instance of <see cref="BadRequestException"/> class.
+    /// Initializes a new instance of the <see cref="BadRequestException"/> class with a <see cref="ModelStateDictionary"/>.
     /// </summary>
+    /// <param name="modelState">The <see cref="ModelStateDictionary"/> containing validation errors.</param>
     public BadRequestException(ModelStateDictionary modelState) : this(null!, modelState)
     {
     }
 
     /// <summary>
-    /// Initialize a new instance of <see cref="BadRequestException"/> class.
+    /// Initializes a new instance of the <see cref="BadRequestException"/> class with a specified detail message and a <see cref="ModelStateDictionary"/>.
     /// </summary>
+    /// <param name="detail">A human-readable explanation specific to this occurrence of the problem.</param>
+    /// <param name="modelState">The <see cref="ModelStateDictionary"/> containing validation errors.</param>
     public BadRequestException(string detail, ModelStateDictionary modelState)
     {
         ProblemDetails = new ValidationProblemDetails(modelState)

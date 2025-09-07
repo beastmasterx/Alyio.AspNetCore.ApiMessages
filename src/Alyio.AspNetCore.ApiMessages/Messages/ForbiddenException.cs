@@ -11,7 +11,7 @@ namespace Alyio.AspNetCore.ApiMessages;
 public sealed class ForbiddenException : Exception, IApiMessage
 {
     /// <summary>
-    /// Initialize a new instance of <see cref="ForbiddenException"/> class.
+    /// Initializes a new instance of the <see cref="ForbiddenException"/> class.
     /// </summary>
     public ForbiddenException()
     {
@@ -24,8 +24,9 @@ public sealed class ForbiddenException : Exception, IApiMessage
     }
 
     /// <summary>
-    /// Initialize a new instance of <see cref="ForbiddenException"/> class.
+    /// Initializes a new instance of the <see cref="ForbiddenException"/> class with a specified detail message.
     /// </summary>
+    /// <param name="detail">A human-readable explanation specific to this occurrence of the problem.</param>
     public ForbiddenException(string detail) : this()
     {
         ProblemDetails.Detail = detail;

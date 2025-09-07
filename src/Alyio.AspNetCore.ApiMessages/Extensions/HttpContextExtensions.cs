@@ -21,13 +21,13 @@ internal static class HttpContextExtensions
     private static readonly JsonSerializerOptions s_jsonSerializeOptions = new() { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull };
 
     /// <summary>
-    /// Writes machine-readable format for specifying errors in HTTP API responses based on https://tools.ietf.org/html/rfc7807.
+    /// Writes Problem Details for HTTP API responses, converting a general <see cref="Exception"/> into a Problem Details response.
     /// </summary>
-    /// <param name="context">The <see cref="HttpContext"/></param>
-    /// <param name="exception">The <see cref="Exception"/></param>
+    /// <param name="context">The <see cref="HttpContext"/>.</param>
+    /// <param name="exception">The <see cref="Exception"/> to be written as Problem Details.</param>
     /// <param name="clearCacheHeaders">Clear Cache-Control, Pragma, Expires and ETag headers. Default is true.</param>
-    /// <returns></returns>
-    /// <exception cref="InvalidOperationException"></exception>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if the response has already started.</exception>
     public static Task WriteExceptionAsProblemDetailsAsync(this HttpContext context, Exception exception, bool clearCacheHeaders = true)
     {
         var message = new InternalServerErrorException(exception.Message);
@@ -57,13 +57,13 @@ internal static class HttpContextExtensions
     }
 
     /// <summary>
-    /// Writes machine-readable format for specifying errors in HTTP API responses based on https://tools.ietf.org/html/rfc7807.
+    /// Writes Problem Details for HTTP API responses, using an <see cref="IApiMessage"/> to generate the Problem Details response.
     /// </summary>
-    /// <param name="context">The <see cref="HttpContext"/></param>
-    /// <param name="message">The <see cref="IApiMessage"/></param>
+    /// <param name="context">The <see cref="HttpContext"/>.</param>
+    /// <param name="message">The <see cref="IApiMessage"/> to be written as Problem Details.</param>
     /// <param name="clearCacheHeaders">Clear Cache-Control, Pragma, Expires and ETag headers. Default is true.</param>
-    /// <returns></returns>
-    /// <exception cref="InvalidOperationException"></exception>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if the response has already started.</exception>
     public static Task WriteProblemDetailsAsync(this HttpContext context, IApiMessage message, bool clearCacheHeaders = true)
     {
         ArgumentNullException.ThrowIfNull(context);

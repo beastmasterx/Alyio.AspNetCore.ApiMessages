@@ -13,7 +13,7 @@ namespace Alyio.AspNetCore.ApiMessages;
 public sealed class UnauthorizedException : Exception, IApiMessage
 {
     /// <summary>
-    /// Initialize a new instance of <see cref="UnauthorizedException"/> class.
+    /// Initializes a new instance of the <see cref="UnauthorizedException"/> class.
     /// </summary>
     public UnauthorizedException()
     {
@@ -26,8 +26,9 @@ public sealed class UnauthorizedException : Exception, IApiMessage
     }
 
     /// <summary>
-    /// Initialize a new instance of <see cref="UnauthorizedException"/> class.
+    /// Initializes a new instance of the <see cref="UnauthorizedException"/> class with a specified detail message.
     /// </summary>
+    /// <param name="detail">A human-readable explanation specific to this occurrence of the problem.</param>
     public UnauthorizedException(string detail) : this()
     {
         ProblemDetails.Detail = detail;

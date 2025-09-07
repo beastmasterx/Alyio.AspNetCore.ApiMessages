@@ -9,6 +9,9 @@ using Microsoft.Extensions.Logging;
 
 namespace Alyio.AspNetCore.ApiMessages.Filters;
 
+/// <summary>
+/// Represents an endpoint filter that handles <see cref="IApiMessage"/> exceptions and writes Problem Details to the HTTP response.
+/// </summary>
 internal sealed class ApiMessageFilter : IEndpointFilter
 {
     private readonly ILogger<ApiMessageFilter> _logger;

@@ -25,7 +25,7 @@ public sealed class ApiMessagesExceptionHandler : IExceptionHandler
     }
 
     /// <summary>
-    /// Attempts to handle the exception.
+    /// Attempts to handle the <see cref="IApiMessage"/> exception.
     /// </summary>
     /// <param name="httpContext">The <see cref="HttpContext"/>.</param>
     /// <param name="exception">The <see cref="Exception"/> to handle.</param>

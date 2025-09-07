@@ -13,10 +13,10 @@ namespace Alyio.AspNetCore.ApiMessages;
 public sealed class ApiMessageAttribute : ExceptionFilterAttribute
 {
     /// <summary>
-    /// Writes the API message into <see cref="HttpContext"/>.
+    /// Handles <see cref="IApiMessage"/> exceptions from action methods and writes Problem Details to the HTTP response.
     /// </summary>
-    /// <param name="context"><see cref="ExceptionContext"/>.</param>
-    /// <returns></returns>
+    /// <param name="context">The <see cref="ExceptionContext"/>.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     public override async Task OnExceptionAsync(ExceptionContext context)
     {
         if (!context.HttpContext.Response.HasStarted && context.Exception is IApiMessage message)

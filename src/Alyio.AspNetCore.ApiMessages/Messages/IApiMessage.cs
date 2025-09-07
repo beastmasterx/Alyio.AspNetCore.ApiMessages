@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Alyio.AspNetCore.ApiMessages;
 
 /// <summary>
-/// Represents an <see cref="IApiMessage"/> interface.
+/// Represents an API message that can be converted into Problem Details.
 /// </summary>
 public interface IApiMessage
 {

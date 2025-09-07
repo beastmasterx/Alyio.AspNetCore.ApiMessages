@@ -11,7 +11,7 @@ namespace Alyio.AspNetCore.ApiMessages;
 public sealed class NotFoundException : Exception, IApiMessage
 {
     /// <summary>
-    /// Initialize a new instance of <see cref="NotFoundException"/> class.
+    /// Initializes a new instance of the <see cref="NotFoundException"/> class.
     /// </summary>
     public NotFoundException()
     {
@@ -24,8 +24,9 @@ public sealed class NotFoundException : Exception, IApiMessage
     }
 
     /// <summary>
-    /// Initialize a new instance of <see cref="NotFoundException"/> class.
+    /// Initializes a new instance of the <see cref="NotFoundException"/> class with a specified detail message.
     /// </summary>
+    /// <param name="detail">A human-readable explanation specific to this occurrence of the problem.</param>
     public NotFoundException(string detail) : this()
     {
         ProblemDetails.Detail = detail;

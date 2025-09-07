@@ -15,11 +15,11 @@ namespace Alyio.AspNetCore.ApiMessages.Extensions;
 public static class EndpointFilterExtensions
 {
     /// <summary>
-    /// Adds an endpoint filter to the builder that handles exceptions and formats the response as a standardized API message.
+    /// Adds an endpoint filter to handle <see cref="IApiMessage"/> exceptions and format responses as Problem Details API messages.
     /// </summary>
     /// <typeparam name="TBuilder">The type of the endpoint convention builder.</typeparam>
     /// <param name="builder">The endpoint convention builder.</param>
-    /// <returns>The original builder.</returns>
+    /// <returns>The <typeparamref name="TBuilder"/> so that additional calls can be chained.</returns>
     public static TBuilder AddApiMessage<TBuilder>(this TBuilder builder) where TBuilder : IEndpointConventionBuilder
     {
         ArgumentNullException.ThrowIfNull(builder);
