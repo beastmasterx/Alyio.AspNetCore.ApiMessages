@@ -4,12 +4,12 @@
     <TargetFrameworks>net6.0;net8.0;net9.0</TargetFrameworks>
     <VersionPrefix>3.0.1</VersionPrefix>
     <Copyright>Copyright (c) 2023 Jon X</Copyright>
-    <Description>Standardize ASP.NET Core API error handling into clean and consistent RFC 7807 ProblemDetails responses using a lightweight exception-based approach.</Description>
+    <Description>A lightweight ASP.NET Core library that seamlessly integrates with ASP.NET Core's error handling mechanisms to standardize API error handling and messages into 'Problem Details for HTTP APIs' responses, supporting exception-based, attribute-based, and filter-based approaches.</Description>
     <Authors>Jon X</Authors>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageId>Alyio.AspNetCore.ApiMessages</PackageId>
-    <PackageTags>aspnetcore,webapi,error-handling,exception-handling,problem-details,rfc7807,api,rest,exceptions,middleware</PackageTags>
+    <PackageTags>aspnetcore,webapi,error-handling,exception-handling,problem-details,rfc9457,api,rest,exceptions,middleware</PackageTags>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageProjectUrl>https://github.com/ousiax/Alyio.AspNetCore.ApiMessages</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
