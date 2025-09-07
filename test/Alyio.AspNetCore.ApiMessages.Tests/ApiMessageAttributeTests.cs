@@ -84,7 +84,9 @@ public class ApiMessageAttributeTests
         return new WebHostBuilder()
             .ConfigureServices((_, services) =>
             {
+#if NET8_0_OR_GREATER
                 services.AddApiMessages();
+#endif
                 services.AddControllers().AddApplicationPart(typeof(TestController).Assembly);
             })
             .Configure(app =>

@@ -113,7 +113,9 @@ public class ApiMessageHandlerMiddlewareTests
         return new WebHostBuilder()
             .ConfigureServices((_, services) =>
             {
+#if NET8_0_OR_GREATER
                 services.AddApiMessages();
+#endif
             })
             .Configure(app =>
             {

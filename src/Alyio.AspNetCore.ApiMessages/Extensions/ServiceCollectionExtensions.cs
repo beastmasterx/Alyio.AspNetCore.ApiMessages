@@ -1,5 +1,7 @@
 // MIT License
 
+#if NET8_0_OR_GREATER
+
 #pragma warning disable IDE0130 // Namespace does not match folder structure
 namespace Microsoft.Extensions.DependencyInjection;
 #pragma warning restore IDE0130 // Namespace does not match folder structure
@@ -18,12 +20,11 @@ public static class ServiceCollectionExtensions
     {
         ArgumentNullException.ThrowIfNull(services);
 
-#if NET8_0_OR_GREATER
         services.AddProblemDetails();
         services.AddSingleton<Alyio.AspNetCore.ApiMessages.Filters.ApiMessageFilter>();
         services.AddExceptionHandler<Alyio.AspNetCore.ApiMessages.ApiMessagesExceptionHandler>();
-#endif
         return services;
     }
 }
 
+#endif
