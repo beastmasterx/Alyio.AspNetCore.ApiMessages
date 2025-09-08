@@ -19,6 +19,7 @@ A lightweight ASP.NET Core library that seamlessly integrates with ASP.NET Core'
   - [Using Endpoint Filters (for .NET 8.0+ Minimal APIs)](#using-endpoint-filters-for-net-80-minimal-apis)
   - [Built-in API Message Examples](#built-in-api-message-examples)
   - [Handling 201 Created Responses with CreatedMessage](#handling-201-created-responses-with-createdmessage)
+- [Migration Guide from 2.x to 3.x](#migration-guide-from-2x-to-3x)
 - [Problem Details for HTTP APIs](#problem-details-for-http-apis)
 - [Contributing](#contributing)
 - [License](#license)
@@ -531,6 +532,38 @@ Location: /api/examples/resources/a1b2c3d4-e5f6-7890-1234-567890abcdef
 ```
 
 *Note: The `Location` header is automatically set by the `CreatedMessageAtAction` extension method. Its value matches the `href` in the `self` link within the response body, providing a consistent and discoverable API experience.*
+
+## Migration Guide from 2.x to 3.x
+
+Version 3.0 introduces significant breaking changes as part of its modernization. The library aligns with .NET 8+ standards, embraces `ProblemDetails` for RFC 9457 compliance, and simplifies its public API.
+
+### Summary of Breaking Changes
+
+*   **Public API**: The `BadRequestMessage` class and other similar classes have been replaced by new exception classes, such as `BadRequestException`.
+*   **`IApiMessage` Interface**: The interface is simplified to expose a single `ProblemDetails` property.
+*   **Configuration**: The setup method is changed. The legacy `UseApiMessage` middleware is available for .NET 6 but is not the recommended approach for modern applications.
+*   **JSON Response Format**: The error response format is changed from a custom schema to the standard `ProblemDetails` JSON object. This may affect clients expecting the old format.
+*   **Validation Error Structure**: The structure of validation errors within the `ProblemDetails` object is updated to align with ASP.NET Core conventions.
+
+### API Developer Migration (Server-Side)
+
+1.  **Configuration (`Program.cs`)**:
+    *   **For .NET 8+ (Recommended)**: `app.UseApiMessageHandler()` should be replaced with `builder.Services.AddApiMessages()` and `app.UseExceptionHandler()`.
+    *   **For .NET 6**: The old `app.UseApiMessageHandler()` should be replaced with the new `app.UseApiMessage()`.
+
+2.  **Exception Classes**:
+    *   All usages of old message classes (e.g., `new BadRequestMessage()`) are to be replaced with their new exception equivalents (`new BadRequestException()`).
+    *   Custom exceptions implementing `IApiMessage` must be refactored to create and expose a `ProblemDetails` object.
+
+3.  **`CreatedMessage` Usage**: The `CreatedMessage` class and its helper extensions now use `System.Text.Json` and nullable reference types. All usage should be reviewed for compatibility.
+
+### API Consumer Migration (Client-Side)
+
+1.  **Error Response Handling**: Clients must be updated to parse the standard `ProblemDetails` JSON object instead of the old custom error format.
+
+2.  **Validation Error Logic**: The structure of validation errors has changed. Client-side code that displays validation messages must be updated to handle the new dictionary structure.
+    *   **Old `errors` field**: `["FieldName: Error message"]`
+    *   **New `errors` field**: `{"FieldName": ["Error message"]}`
 
 ## Problem Details for HTTP APIs
 
