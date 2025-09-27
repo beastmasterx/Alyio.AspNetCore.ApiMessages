@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Xunit;
 
 namespace Alyio.AspNetCore.ApiMessages.Tests;
@@ -23,14 +24,17 @@ public class ApiMessageHandlerMiddlewareTests
     public async Task Middleware_WhenApiMessageExceptionIsThrown_ReturnsCorrectProblemDetails(string path, HttpStatusCode expectedStatusCode, string expectedType)
     {
         // Arrange
-        var builder = CreateWebHostBuilder(app =>
+        using var host = CreateWebHost(app =>
         {
             app.Map(path, x => x.Run(_ => throw GetExceptionForPath(path)));
         });
-        var testServer = new TestServer(builder);
+
+        await host.StartAsync();
+
+        using var client = host.GetTestClient();
 
         // Act
-        var response = await testServer.CreateRequest(path).GetAsync();
+        var response = await client.GetAsync(path);
 
         // Assert
         Assert.Equal(expectedStatusCode, response.StatusCode);
@@ -44,14 +48,17 @@ public class ApiMessageHandlerMiddlewareTests
     public async Task Middleware_WhenUnhandledExceptionIsThrown_Returns500InternalServerError()
     {
         // Arrange
-        var builder = CreateWebHostBuilder(app =>
+        using var host = CreateWebHost(app =>
         {
             app.Run(_ => throw new InvalidOperationException("This is an unhandled exception."));
         });
-        var testServer = new TestServer(builder);
+
+        await host.StartAsync();
+
+        using var client = host.GetTestClient();
 
         // Act
-        var response = await testServer.CreateRequest("/").GetAsync();
+        var response = await client.GetAsync("/");
 
         // Assert
         Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
@@ -65,21 +72,24 @@ public class ApiMessageHandlerMiddlewareTests
     public async Task Middleware_WhenNoExceptionIsThrown_DoesNotInterfere()
     {
         // Arrange
-        var builder = CreateWebHostBuilder(app =>
-        {
-            app.Map("/201", x =>
-            {
-                x.Run(h =>
-                {
-                    h.Response.StatusCode = StatusCodes.Status201Created;
-                    return h.Response.WriteAsJsonAsync(new CreatedMessage { Id = "9527" });
-                });
-            });
-        });
-        var testServer = new TestServer(builder);
+        using var host = CreateWebHost(app =>
+         {
+             app.Map("/201", x =>
+             {
+                 x.Run(h =>
+                 {
+                     h.Response.StatusCode = StatusCodes.Status201Created;
+                     return h.Response.WriteAsJsonAsync(new CreatedMessage { Id = "9527" });
+                 });
+             });
+         });
+
+        await host.StartAsync();
+
+        using var client = host.GetTestClient();
 
         // Act
-        var response = await testServer.CreateRequest("/201").GetAsync();
+        var response = await client.GetAsync("/201");
 
         // Assert
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
@@ -92,7 +102,7 @@ public class ApiMessageHandlerMiddlewareTests
     public async Task Middleware_WhenResponseHasAlreadyStarted_RethrowsException()
     {
         // Arrange
-        var builder = CreateWebHostBuilder(app =>
+        using var host = CreateWebHost(app =>
         {
             // This middleware starts the response, so the ApiMessageHandler should not be able to write to it.
             app.Use(async (context, next) =>
@@ -102,31 +112,42 @@ public class ApiMessageHandlerMiddlewareTests
             });
             app.Run(_ => throw new BadRequestException("This should be re-thrown."));
         });
-        var testServer = new TestServer(builder);
+
+        await host.StartAsync();
+
+        using var client = host.GetTestClient();
 
         // Act & Assert
-        await Assert.ThrowsAsync<HttpRequestException>(() => testServer.CreateRequest("/").GetAsync());
+        await Assert.ThrowsAsync<HttpRequestException>(() => client.GetAsync("/"));
     }
 
-    private static IWebHostBuilder CreateWebHostBuilder(Action<IApplicationBuilder> configureApp)
+    private static IHost CreateWebHost(Action<IApplicationBuilder> configureApp)
     {
-        return new WebHostBuilder()
-            .ConfigureServices((_, services) =>
+        var host = Host.CreateDefaultBuilder()
+            .ConfigureWebHost(builder =>
             {
+                builder.UseTestServer();
+
+                builder.ConfigureServices(services =>
+                {
 #if NET8_0_OR_GREATER
-                services.AddApiMessages();
+                    services.AddApiMessages();
 #endif
-            })
-            .Configure(app =>
-            {
+                });
+
+                builder.Configure(app =>
+                {
 #if NET8_0_OR_GREATER
-                app.UseExceptionHandler();
+                    app.UseExceptionHandler();
 #else
-                app.UseExceptionHandler(new ExceptionHandlerOptions { ExceptionHandler = ExceptionHandler.WriteUnhandledMessageAsync });
-                app.UseApiMessage();
+                    app.UseExceptionHandler(new ExceptionHandlerOptions { ExceptionHandler = ExceptionHandler.WriteUnhandledMessageAsync });
+                    app.UseApiMessage();
 #endif
-                configureApp(app);
-            });
+                    configureApp(app);
+                });
+            })
+            .Build();
+        return host;
     }
 
     private static Exception GetExceptionForPath(string path) => path switch

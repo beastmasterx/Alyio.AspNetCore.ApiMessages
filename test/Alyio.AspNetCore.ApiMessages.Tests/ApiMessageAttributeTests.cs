@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Xunit;
 
 namespace Alyio.AspNetCore.ApiMessages.Tests;
@@ -49,8 +50,11 @@ public class ApiMessageAttributeTests
     public async Task Attribute_WhenApiMessageExceptionIsThrown_ReturnsCorrectProblemDetails(string path, HttpStatusCode expectedStatusCode, string expectedType)
     {
         // Arrange
-        var builder = CreateWebHostBuilder();
-        var client = new TestServer(builder).CreateClient();
+        using var host = CreateWebHost();
+
+        await host.StartAsync();
+
+        using var client = host.GetTestClient();
 
         // Act
         var response = await client.GetAsync(path);
@@ -67,8 +71,11 @@ public class ApiMessageAttributeTests
     public async Task Attribute_WhenNoExceptionIsThrown_ReturnsSuccess()
     {
         // Arrange
-        var builder = CreateWebHostBuilder();
-        var client = new TestServer(builder).CreateClient();
+        using var host = CreateWebHost();
+
+        await host.StartAsync();
+
+        using var client = host.GetTestClient();
 
         // Act
         var response = await client.GetAsync("/api/test/ok");
@@ -79,20 +86,27 @@ public class ApiMessageAttributeTests
         Assert.Equal("OK", body);
     }
 
-    private static IWebHostBuilder CreateWebHostBuilder()
+    private static IHost CreateWebHost()
     {
-        return new WebHostBuilder()
-            .ConfigureServices((_, services) =>
+        var host = Host.CreateDefaultBuilder()
+            .ConfigureWebHost(builder =>
+            {
+                builder.UseTestServer();
+                builder.Configure((ctx, app) =>
+                {
+                    app.UseRouting();
+                    app.UseEndpoints(p => p.MapControllers());
+                });
+            })
+            .ConfigureServices((ctx, services) =>
             {
 #if NET8_0_OR_GREATER
                 services.AddApiMessages();
 #endif
                 services.AddControllers().AddApplicationPart(typeof(TestController).Assembly);
             })
-            .Configure(app =>
-            {
-                app.UseRouting();
-                app.UseEndpoints(p => p.MapControllers());
-            });
+            .Build();
+
+        return host;
     }
 }

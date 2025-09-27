@@ -4,6 +4,7 @@
 
 using System.Net;
 using System.Net.Http.Json;
+using Alyio.AspNetCore.ApiMessages.Extensions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -11,7 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
-using Alyio.AspNetCore.ApiMessages.Extensions;
+using Microsoft.Extensions.Hosting;
 using Xunit;
 
 namespace Alyio.AspNetCore.ApiMessages.Tests;
@@ -27,14 +28,17 @@ public class ApiMessageFilterTests
     public async Task Filter_WhenApiMessageExceptionIsThrown_ReturnsCorrectProblemDetails(string path, HttpStatusCode expectedStatusCode, string expectedType)
     {
         // Arrange
-        var builder = CreateWebHostBuilder(endpoints =>
+        using var host = CreateWebHost(endpoints =>
         {
             endpoints.MapGet(path, () => { throw GetExceptionForPath(path); }).AddApiMessage();
         });
-        var testServer = new TestServer(builder);
+
+        await host.StartAsync();
+
+        using var client = host.GetTestClient();
 
         // Act
-        var response = await testServer.CreateRequest(path).GetAsync();
+        var response = await client.GetAsync(path);
 
         // Assert
         Assert.Equal(expectedStatusCode, response.StatusCode);
@@ -44,22 +48,31 @@ public class ApiMessageFilterTests
         Assert.Equal(expectedType, details.Type);
     }
 
-    private static IWebHostBuilder CreateWebHostBuilder(Action<IEndpointRouteBuilder> configureEndpoints)
+    private static IHost CreateWebHost(Action<IEndpointRouteBuilder> configureEndpoints)
     {
-        return new WebHostBuilder()
-            .ConfigureServices((_, services) =>
+        var host = Host.CreateDefaultBuilder()
+            .ConfigureWebHost(builder =>
             {
-                services.AddRouting();
-                services.AddApiMessages();
-            })
-            .Configure(app =>
-            {
-                app.UseRouting();
-                app.UseEndpoints(endpoints =>
+                builder.UseTestServer();
+
+                builder.ConfigureServices(services =>
                 {
-                    configureEndpoints(endpoints);
+                    services.AddRouting();
+                    services.AddApiMessages();
                 });
-            });
+
+                builder.Configure(app =>
+                {
+                    app.UseRouting();
+                    app.UseEndpoints(endpoints =>
+                    {
+                        configureEndpoints(endpoints);
+                    });
+                });
+            })
+            .Build();
+
+        return host;
     }
 
     private static Exception GetExceptionForPath(string path) => path switch
