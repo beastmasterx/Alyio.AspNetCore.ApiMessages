@@ -193,7 +193,7 @@ builder.Services.AddControllers();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-app.UseExceptionHandler(ExceptionHandler.WriteUnhandledMessageAsync); // Handles unhandled exceptions
+app.UseExceptionHandler(new ExceptionHandlerOptions { ExceptionHandler = ExceptionHandler.WriteUnhandledMessageAsync }); // Handles unhandled exceptions
 app.UseApiMessage(); // Catches IApiMessage exceptions
 
 app.UseHttpsRedirection();
